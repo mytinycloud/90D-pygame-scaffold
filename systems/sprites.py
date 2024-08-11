@@ -1,14 +1,13 @@
 from engine.entity import Entity, EntityGroup
 from engine.window import Window
 
-from .position import with_position
+from .motion import with_position
 
 import pygame
 import os
 
 '''
-The sprite drawings system.
-
+The sprite drawings system:
 Use the camera position to draw all entities with a sprite at their relative location.
 '''
 def draw_sprite_system(group: EntityGroup):
@@ -18,18 +17,17 @@ def draw_sprite_system(group: EntityGroup):
 
     for e in group.query('sprite', 'pos'):
         
-        local_x = e.pos[0] - camera.pos[0]
-        local_y = e.pos[1] - camera.pos[1]
-
-        # Todo. Actually be good.
-        screen_x = local_x
-        screen_y = local_y
-
-        window.surface.blit(e.sprite, (screen_x, screen_y))
+        size = e.sprite.get_size()
+        sprite_pos = (
+            e.pos[0] - camera.pos[0] - (size[0] / 2),
+            e.pos[1] - camera.pos[1] - (size[1] / 2)
+        )
+        # Note, we are ignoring any screen-space culling
+        window.surface.blit(e.sprite, sprite_pos)
 
 
 '''
-Adds the sprite drawing system, along with its rendering camera
+Mounts the sprite drawing system, and adds a camera component for the viewport
 '''
 def mount_sprite_system(group: EntityGroup, window: Window):
     camera = group.create()

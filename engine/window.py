@@ -29,6 +29,7 @@ class Window():
     def update(self):
         pygame.display.flip()
         self.clock.tick(self.frame_rate)
+        self.surface.fill((0,0,0))
 
     def close(self):
         pygame.quit()

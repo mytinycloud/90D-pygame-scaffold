@@ -1,3 +1,4 @@
+from . import motion
 from . import sprites
 from . import player
-from . import position
+from . import controls
