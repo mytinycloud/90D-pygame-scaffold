@@ -2,7 +2,8 @@ import engine
 
 window = engine.window.Window()
 
-for i in range(60 * 10):
+while not window.exited:
+    window.handle_events()
     window.update()
 
 window.close()
