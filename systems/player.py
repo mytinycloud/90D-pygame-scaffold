@@ -24,7 +24,7 @@ def player_update_system(group: EntityGroup):
 Adds the player character, and mounts systems for updating the player with the control inputs
 '''
 def mount_player_system(group: EntityGroup):
-    player = group.create()
+    player = group.create("player")
     player.is_player = True
     with_motion(player, (0,0))
     with_placeholder_sprite(player, (32,32), (255,0,0))

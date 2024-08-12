@@ -1,17 +1,21 @@
 import typing
 
 class Entity():
-    def __init__(self):
-        pass
+    def __init__(self, name: str):
+        self.name = name # Name for debugging
+
+    def __repr__(self) -> str:
+        return f"<Entity: {self.name}>"
 
     '''
     Returns true if this entity contains the specified keys
     '''
-    def _contains_properties(self, props: tuple[str]) -> bool:
-        for p in props:
-            if not hasattr(self, p):
+    def contains(self, components: tuple[str]) -> bool:
+        for c in components:
+            if not hasattr(self, c):
                 return False
         return True
+    
     
 SystemFunction = typing.Callable[['EntityGroup'], None]
 
@@ -35,8 +39,8 @@ class EntityGroup():
     '''
     Creates a new entity and returns it.
     '''
-    def create(self) -> Entity:
-        e = Entity()
+    def create(self, name: str) -> Entity:
+        e = Entity(name)
         self.add(e)
         return e
     
@@ -57,18 +61,18 @@ class EntityGroup():
     Yields an iterable of entities which contain the required properties.
     If this becomes too slow, we can just cache these.
     '''
-    def query(self, *props: str) -> typing.Generator[Entity, None, None]:
+    def query(self, *components: str) -> typing.Generator[Entity, None, None]:
         for e in self.entities:
-            if e._contains_properties(props):
+            if e.contains(components):
                 yield e
 
     '''
     Returns the first entity that contains the require properties.
     If this becomes too slow, we can just cache these.
     '''
-    def query_singleton(self, *props: str) -> Entity | None:
+    def query_singleton(self, *components: str) -> Entity | None:
         for e in self.entities:
-            if e._contains_properties(props):
+            if e.contains(components):
                 return e
         return None
     
