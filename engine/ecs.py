@@ -73,7 +73,7 @@ class Entity():
     def clone(self) -> 'Entity':
         e = Entity(self.name)
         for key, value in vars(self).items():
-            if key != "name":
+            if key not in ["name", "mask"]:
                 setattr(e, key, value.clone())
         return e
     
