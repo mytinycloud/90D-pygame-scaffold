@@ -1,6 +1,13 @@
-from engine.entity import Entity, EntityGroup
-from engine.window import Window
+from engine.ecs import Component, EntityGroup
 
+'''
+Component containing a position, velocity, ect
+'''
+class MotionComponent(Component):
+    def __init__(self, pos: tuple[float,float], is_movable: bool = False):
+        self.position = pos
+        self.velocity = (0,0)
+        self.is_movable = is_movable
 
 '''
 The motion update system:
@@ -12,10 +19,11 @@ def motion_update_system(group: EntityGroup):
     timestep = 1.0 / 60
     
     # Update the position of all entities with a velocity
-    for e in group.query('velocity'):
-        e.pos = (
-            e.pos[0] + (e.velocity[0] * timestep),
-            e.pos[1] + (e.velocity[1] * timestep),
+    for e in group.query('motion'):
+        motion = e.motion
+        motion.position = (
+            motion.position[0] + (motion.velocity[0] * timestep),
+            motion.position[1] + (motion.velocity[1] * timestep),
         )
 
 '''
@@ -23,18 +31,4 @@ Mounts systems for updating motion components
 '''
 def mount_motion_system(group: EntityGroup):
     group.mount_system(motion_update_system)
-
-'''
-Adds position information to an entity
-'''
-def with_position(e: Entity, position: tuple[float,float]):
-    e.pos = position
-
-'''
-Adds motion information to an entity.
-with_position is implied.
-'''
-def with_motion(e: Entity, position: tuple[float, float]):
-    e.pos = position
-    e.velocity = (0,0)
 

@@ -1,13 +1,13 @@
-from engine.entity import Entity, EntityGroup
+from engine.ecs import Component, EntityGroup
 from engine.window import Window
 
 import pygame
 
 
 '''
-Dataclass to contain decoded input information
+Component class to store 
 '''
-class ControlComponent():
+class ControlComponent(Component):
     def __init__(self):
         self.direction: tuple[int,int] = (0,0)
 

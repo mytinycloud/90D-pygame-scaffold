@@ -1,3 +1,3 @@
 from . import window
-from . import entity
+from . import ecs
 

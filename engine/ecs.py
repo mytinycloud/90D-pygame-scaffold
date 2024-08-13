@@ -1,5 +1,21 @@
 import typing
 
+class Component():
+    def __init__(self):
+        pass
+    
+    '''
+    Default way of cloning a component - a shallow copy
+    '''
+    def clone(self) -> 'Component':
+        c = Component()
+        for key, value in vars(self).items():
+            setattr(c, key, value)
+        return c
+
+'''
+An entity is a collection of components
+'''
 class Entity():
     def __init__(self, name: str):
         self.name = name # Name for debugging
@@ -15,6 +31,16 @@ class Entity():
             if not hasattr(self, c):
                 return False
         return True
+    
+    '''
+    Clones an entity by cloning its components
+    '''
+    def clone(self) -> 'Entity':
+        e = Entity(self.name)
+        for key, value in vars(self).items():
+            if key != "name":
+                setattr(e, key, value.clone())
+        return e
     
     
 SystemFunction = typing.Callable[['EntityGroup'], None]
