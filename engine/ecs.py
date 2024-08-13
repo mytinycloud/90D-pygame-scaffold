@@ -23,6 +23,9 @@ def enumerate_component(name: str):
     return named_component_inner
 
 
+'''
+Creates a bitwise mask for all components in the entity
+'''
 def component_mask(components: tuple[str]):
     mask = 0
     for name in components:
@@ -84,9 +87,10 @@ class EntityGroup():
     def __init__(self):
         self.entities: list[Entity] = []
         self.systems: list[SystemFunction] = []
+        self._singleton_cache: dict[int, Entity] = {}
 
     '''
-    Add a new entity to the group. The components must already be assigned at this point.
+    Add a new entity to the group. The components must already be assigned, as they are used for component masks.
     '''
     def add(self, entity: Entity):
         entity.mask = component_mask(vars(entity).keys())
@@ -123,11 +127,13 @@ class EntityGroup():
 
     '''
     Returns the first entity that contains the require properties.
-    If this becomes too slow, we can just cache these.
+    This value gets cached, as singletons are not expected to be changed over the group lifetime.
     '''
-    def query_singleton(self, *components: str) -> Entity | None:
+    def query_singleton(self, *components: str) -> Entity:
         mask = component_mask(components)
-        for e in self.entities:
-            if e.mask & mask == mask:
-                return e
-        return None
+        if not mask in self._singleton_cache:
+            try:
+                self._singleton_cache[mask] = next(self.query(*components))
+            except StopIteration:
+                raise Exception(f"Singleton not found with [{', '.join(components)}]")
+        return self._singleton_cache[mask]

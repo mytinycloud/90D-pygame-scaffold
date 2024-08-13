@@ -30,7 +30,7 @@ def update_controls_system(group: EntityGroup):
 '''
 Mounts the components and systems for reading controls
 '''
-def mount_control_system(group: EntityGroup, window: Window):
+def mount_control_system(group: EntityGroup):
     controls = Entity("controls")
     controls.controls = ControlComponent()
     group.add(controls)
