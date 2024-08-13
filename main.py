@@ -1,5 +1,5 @@
 from engine.window import Window
-from engine.ecs import EntityGroup, Entity
+from engine.ecs import EntityGroup
 
 import systems
 

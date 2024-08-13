@@ -1,4 +1,4 @@
-from engine.ecs import Component, EntityGroup
+from engine.ecs import Component, Entity, EntityGroup, enumerate_component
 from engine.window import Window
 
 from .motion import MotionComponent
@@ -10,6 +10,7 @@ import os
 '''
 A component that contains sprite information
 '''
+@enumerate_component("sprite")
 class SpriteComponent(Component):
     def __init__(self, surface: pygame.surface.Surface):
         self.surface = surface
@@ -36,10 +37,10 @@ class SpriteComponent(Component):
 '''
 A component that represents a camera
 '''
+@enumerate_component("camera")
 class CameraComponent():
     def __init__(self, window: Window):
         self.window = window
-
 
 
 '''
@@ -70,9 +71,10 @@ def draw_sprite_system(group: EntityGroup):
 Mounts the sprite drawing system, and adds a camera component for the viewport
 '''
 def mount_sprite_system(group: EntityGroup, window: Window):
-    camera = group.create("camera")
+    camera = Entity("camera")
     camera.camera = CameraComponent(window)
     camera.motion = MotionComponent((0,0))
+    group.add(camera)
     
     group.mount_system(draw_sprite_system)
 

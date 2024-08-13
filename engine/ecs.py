@@ -1,5 +1,39 @@
 import typing
 
+COMPONENT_COUNT = 0
+COMPONENT_INDICES = {}
+
+'''
+Required to enable querying of a given component.
+The supplied string should be the attribute name that will be used for the component
+
+@enumerate_component("new_component")
+class NewComponent(Component)
+    ...
+
+e = Entity()
+e.new_component = NewComponent()
+'''
+def enumerate_component(name: str):
+    global COMPONENT_COUNT
+    COMPONENT_INDICES[name] = COMPONENT_COUNT
+    COMPONENT_COUNT += 1
+    def named_component_inner(component: typing.Callable):
+        return component
+    return named_component_inner
+
+
+def component_mask(components: tuple[str]):
+    mask = 0
+    for name in components:
+        try:
+            i = COMPONENT_INDICES[name]
+            mask |= 1 << i
+        except:
+            continue
+    return mask
+
+
 class Component():
     def __init__(self):
         pass
@@ -19,6 +53,7 @@ An entity is a collection of components
 class Entity():
     def __init__(self, name: str):
         self.name = name # Name for debugging
+        self.mask = 0
 
     def __repr__(self) -> str:
         return f"<Entity: {self.name}>"
@@ -51,9 +86,10 @@ class EntityGroup():
         self.systems: list[SystemFunction] = []
 
     '''
-    Add a new entity to the group
+    Add a new entity to the group. The components must already be assigned at this point.
     '''
     def add(self, entity: Entity):
+        entity.mask = component_mask(vars(entity).keys())
         self.entities.append(entity)
 
     '''
@@ -62,14 +98,6 @@ class EntityGroup():
     def remove(self, entity: Entity):
         self.entities.remove(entity)
 
-    '''
-    Creates a new entity and returns it.
-    '''
-    def create(self, name: str) -> Entity:
-        e = Entity(name)
-        self.add(e)
-        return e
-    
     '''
     Adds a new system
     '''
@@ -88,8 +116,9 @@ class EntityGroup():
     If this becomes too slow, we can just cache these.
     '''
     def query(self, *components: str) -> typing.Generator[Entity, None, None]:
+        mask = component_mask(components)
         for e in self.entities:
-            if e.contains(components):
+            if e.mask & mask == mask:
                 yield e
 
     '''
@@ -97,14 +126,8 @@ class EntityGroup():
     If this becomes too slow, we can just cache these.
     '''
     def query_singleton(self, *components: str) -> Entity | None:
+        mask = component_mask(components)
         for e in self.entities:
-            if e.contains(components):
+            if e.mask & mask == mask:
                 return e
         return None
-    
-    '''
-    We can cache queries if it becomes a problem
-    '''
-    def _hash_props(self, props: list[str]):
-        return ','.join(props)
-
