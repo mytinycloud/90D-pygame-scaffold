@@ -1,13 +1,14 @@
 from engine.ecs import Component, EntityGroup, enumerate_component
+from pygame import Vector2
 
 '''
 Component containing a position, velocity, ect
 '''
 @enumerate_component("motion")
 class MotionComponent(Component):
-    def __init__(self, pos: tuple[float,float], is_movable: bool = False):
-        self.position = pos
-        self.velocity = (0,0)
+    def __init__(self, pos: Vector2 = Vector2(0,0), is_movable: bool = False):
+        self.position = Vector2(pos)
+        self.velocity = Vector2(0,0)
         self.is_movable = is_movable
 
 '''
@@ -23,10 +24,7 @@ def motion_update_system(group: EntityGroup):
     for e in group.query('motion'):
         motion: MotionComponent = e.motion
         if motion.is_movable:
-            motion.position = (
-                motion.position[0] + (motion.velocity[0] * timestep),
-                motion.position[1] + (motion.velocity[1] * timestep),
-            )
+            motion.position += motion.velocity * timestep
 
 '''
 Mounts systems for updating motion components

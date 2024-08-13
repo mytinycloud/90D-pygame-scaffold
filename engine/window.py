@@ -7,8 +7,7 @@ class Window():
     '''
     def __init__(self, res: tuple[int,int] = (1280,800)):
         pygame.init()
-        self.res = res
-        self.surface = pygame.display.set_mode(self.res)
+        self.surface = pygame.display.set_mode(res)
         self.surface.fill((0,0,0))
         self.clock = pygame.time.Clock()
         self.frame_rate = 60

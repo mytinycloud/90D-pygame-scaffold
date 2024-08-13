@@ -22,10 +22,7 @@ def player_update_system(group: EntityGroup):
     controls = group.query_singleton('controls').controls
 
     for player in group.query('player'):
-        player.motion.velocity = (
-            controls.direction[0] * 100,
-            controls.direction[1] * 100,
-        )
+        player.motion.velocity = controls.direction * 100
 
 
 '''
@@ -34,7 +31,7 @@ Adds the player character, and mounts systems for updating the player with the c
 def mount_player_system(group: EntityGroup):
     player = Entity("player")
     player.player = PlayerComponent()
-    player.motion = MotionComponent((0,0), True)
+    player.motion = MotionComponent(is_movable = True)
     player.sprite = SpriteComponent.from_square((32,32), (255,0,0))
     group.add(player)
 

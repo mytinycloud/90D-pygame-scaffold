@@ -1,10 +1,12 @@
 from engine.ecs import Component, Entity, EntityGroup, enumerate_component
-from engine.window import Window
+import os
+
+import pygame
+from pygame.surface import Surface
+from pygame import Vector2
 
 from .motion import MotionComponent
 
-import pygame
-import os
 
 
 '''
@@ -12,7 +14,7 @@ A component that contains sprite information
 '''
 @enumerate_component("sprite")
 class SpriteComponent(Component):
-    def __init__(self, surface: pygame.surface.Surface):
+    def __init__(self, surface: Surface):
         self.surface = surface
 
     '''
@@ -29,7 +31,7 @@ class SpriteComponent(Component):
     '''
     @staticmethod
     def from_square(size: tuple[int,int], color: tuple[int,int,int]):
-        surface = pygame.surface.Surface(size)
+        surface = Surface(size)
         surface.fill(color)
         return SpriteComponent(surface)
 
@@ -39,8 +41,8 @@ A component that represents a camera
 '''
 @enumerate_component("camera")
 class CameraComponent():
-    def __init__(self, window: Window):
-        self.window = window
+    def __init__(self, surface: Surface):
+        self.surface = surface
 
 
 '''
@@ -50,30 +52,25 @@ Use the camera position to draw all entities with a sprite at their relative loc
 def draw_sprite_system(group: EntityGroup):
 
     camera = group.query_singleton('camera')
-    window: Window = camera.camera.window
-    origin = (
-        (window.res[0] / 2) - camera.motion.position[0],
-        (window.res[1] / 2) - camera.motion.position[1]
-    )
+    surface = camera.camera.surface
+    origin = Vector2(surface.get_size()) / 2 - camera.motion.position
 
     for e in group.query('sprite', 'motion'):
         
-        size = e.sprite.surface.get_size()
-        sprite_pos = (
-            e.motion.position[0] + origin[0] - (size[0] / 2),
-            e.motion.position[1] + origin[1] - (size[1] / 2)
-        )
+        size = Vector2(e.sprite.surface.get_size())
+        sprite_pos = e.motion.position + origin - size / 2
+
         # Note, we are ignoring any screen-space culling
-        window.surface.blit(e.sprite.surface, sprite_pos)
+        surface.blit(e.sprite.surface, sprite_pos)
 
 
 '''
 Mounts the sprite drawing system, and adds a camera component for the viewport
 '''
-def mount_sprite_system(group: EntityGroup, window: Window):
+def mount_sprite_system(group: EntityGroup, target: Surface):
     camera = Entity("camera")
-    camera.camera = CameraComponent(window)
-    camera.motion = MotionComponent((0,0))
+    camera.camera = CameraComponent(target)
+    camera.motion = MotionComponent()
     group.add(camera)
     
     group.mount_system(draw_sprite_system)

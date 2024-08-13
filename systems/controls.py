@@ -1,7 +1,7 @@
 from engine.ecs import Component, Entity, EntityGroup, enumerate_component
-from engine.window import Window
 
 import pygame
+from pygame import Vector2
 
 
 '''
@@ -10,7 +10,7 @@ Component class to store decoded control inputs
 @enumerate_component("controls")
 class ControlComponent(Component):
     def __init__(self):
-        self.direction: tuple[int,int] = (0,0)
+        self.direction = Vector2(0,0)
 
 
 '''
@@ -21,7 +21,7 @@ def update_controls_system(group: EntityGroup):
     controls: ControlComponent = group.query_singleton('controls').controls
     keys = pygame.key.get_pressed()
     
-    controls.direction = (
+    controls.direction = Vector2(
         int(keys[pygame.K_d]) - int(keys[pygame.K_a]),
         int(keys[pygame.K_s]) - int(keys[pygame.K_w])
     )

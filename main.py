@@ -12,7 +12,7 @@ group = EntityGroup()
 systems.controls.mount_control_system(group)
 systems.player.mount_player_system(group)
 systems.motion.mount_motion_system(group)
-systems.sprites.mount_sprite_system(group, window)
+systems.sprites.mount_sprite_system(group, window.surface)
 
 # Main loop
 while not window.exited:
