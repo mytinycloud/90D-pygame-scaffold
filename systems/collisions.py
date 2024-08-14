@@ -76,28 +76,26 @@ def _compute_intersection_circle_circle(a: Entity, b: Entity) -> Intersection | 
 
 def _compute_intersection_box_circle(a: Entity, b: Entity) -> Intersection | None:
     delta = b.motion.position - a.motion.position
-    box_bounds = a.hitbox.bounds
-    # TODO: Review this.
-    # If we know the collision occurrs on the box edge, not the corner, then it reduces to a single overlap check.
-    # If the circle center enters the box, then delta degerates to zero (this is very bad).
+    box = a.hitbox.bounds
     
-    # Find the distance to the closest point on the circle.
-    delta.x -= max(-box_bounds.x, min(delta.x, box_bounds.x))
-    delta.y -= max(-box_bounds.y, min(delta.y, box_bounds.y))
+    # If a the circle center overlaps one axis, it reduces to a box-box check.
+    if abs(delta.x) <= box.x or abs(delta.y) <= box.y:
+        return _compute_intersection_box_box(a, b)
+
+    # Identify the box corner closest to the circle, and get the distance to that.
+    delta.x -= -box.x if delta.x < 0 else box.x
+    delta.y -= -box.y if delta.y < 0 else box.y
     
     # Effectively a circle-circle check to the closest point on the box
     radius = b.hitbox.bounds.x
     if delta.length_squared() >= radius * radius:
         return None
-    try:
-        return (delta.normalize() * radius) - delta
-    except:
-        raise Exception("Ask Tim to fix the delta=0,0 issue in box-circle checks.")
+    return (delta.normalize() * radius) - delta
     
     
 def _compute_intersection_circle_box(a: Entity, b: Entity) -> Intersection | None:
     overlap = _compute_intersection_box_circle(b, a)
-    return None if overlap == None else -overlap
+    return -overlap if overlap != None else None
 
 '''
 Computes the intersection vector for two hitboxes.
