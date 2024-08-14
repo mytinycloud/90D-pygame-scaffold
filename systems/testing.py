@@ -13,7 +13,7 @@ def testing_system(group: EntityGroup):
 
 
 '''
-Mount the testing system and any testing code
+Mount the testing system any testing init
 '''
 def mount_testing_system(group: EntityGroup):
     

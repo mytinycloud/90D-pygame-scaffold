@@ -4,3 +4,4 @@ from . import player
 from . import controls
 from . import testing
 from . import collisions
+from . import time

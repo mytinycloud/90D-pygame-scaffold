@@ -17,13 +17,13 @@ Update any entities with motions components
 def motion_update_system(group: EntityGroup):
 
     # Naughty. Get this from the window?
-    timestep = 1.0 / 60
+    delta = group.query_singleton("time").time.delta
     
     # Update the position of all entities with a velocity
     for e in group.query('motion'):
         motion: MotionComponent = e.motion
         if motion.is_movable:
-            motion.position += motion.velocity * timestep
+            motion.position += motion.velocity * delta
 
 '''
 Mounts systems for updating motion components
