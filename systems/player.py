@@ -2,6 +2,7 @@ from engine.ecs import Component, Entity, EntityGroup, enumerate_component
 
 from .sprites import SpriteComponent
 from .motion import MotionComponent
+from .collisions import HitboxComponent
 
 
 '''
@@ -33,6 +34,7 @@ def mount_player_system(group: EntityGroup):
     player.player = PlayerComponent()
     player.motion = MotionComponent(is_movable = True)
     player.sprite = SpriteComponent.from_square((32,32), (255,0,0))
+    player.hitbox = HitboxComponent(16)
     group.add(player)
 
     group.mount_system(player_update_system)
