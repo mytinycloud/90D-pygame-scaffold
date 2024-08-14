@@ -12,7 +12,7 @@ class TimeComponent():
     total: float = 0.0      # Game time in seconds
     delta: float = 0.0      # Elapsed time since previous frame
     tick: int = 0           # Frame number
-    
+
 
 
 
@@ -27,8 +27,6 @@ def update_time_system(group: EntityGroup):
     t.tick += 1
     t.delta = delta
     t.total += delta
-
-    print(t.delta, t.total, t.tick)
 
 
 

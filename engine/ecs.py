@@ -23,7 +23,7 @@ def enumerate_component(name: str):
     COMPONENT_INDICES[name] = COMPONENT_COUNT
     COMPONENT_COUNT += 1
     def named_component_inner(component: typing.Callable):
-        return dataclasses.dataclass(init=True, slots=True)(component)
+        return dataclasses.dataclass(init=True, slots=True, kw_only=True)(component)
     return named_component_inner
 
 '''

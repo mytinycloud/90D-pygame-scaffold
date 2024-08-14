@@ -23,7 +23,7 @@ class SpriteComponent():
     def from_resource(resource: str) -> 'SpriteComponent':
         resource = os.path.join("resources", resource)
         surface = pygame.image.load(resource)
-        return SpriteComponent(surface)
+        return SpriteComponent(surface=surface)
     
     '''
     Creates a filled square as a sprite
@@ -32,7 +32,7 @@ class SpriteComponent():
     def from_box(size: tuple[int,int], color: tuple[int,int,int]):
         surface = Surface(size)
         surface.fill(color)
-        return SpriteComponent(surface)
+        return SpriteComponent(surface=surface)
 
 
 '''
@@ -67,7 +67,7 @@ Mounts the sprite drawing system, and adds a camera component for the viewport
 '''
 def mount_sprite_system(group: EntityGroup, target: Surface):
     camera = Entity("camera")
-    camera.camera = CameraComponent(target)
+    camera.camera = CameraComponent(surface=target)
     camera.motion = MotionComponent()
     group.add(camera)
     
