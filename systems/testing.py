@@ -30,6 +30,8 @@ def mount_testing_system(group: EntityGroup):
 
     e = e.clone()
     e.motion.position = Vector2(150,90)
+    e.hitbox = HitboxComponent.from_circle(32, 1)
+    e.sprite = SpriteComponent.from_circle(32, (0,0,255))
     group.add(e)
 
     group.mount_system(testing_system)

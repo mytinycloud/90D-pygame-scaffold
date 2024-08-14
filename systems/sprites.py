@@ -33,6 +33,15 @@ class SpriteComponent():
         surface = Surface(size)
         surface.fill(color)
         return SpriteComponent(surface=surface)
+    
+    '''
+    Creates a filled circle as a sprite
+    '''
+    @staticmethod
+    def from_circle(diameter: int, color: tuple[int,int,int]):
+        surface = Surface((diameter, diameter), pygame.SRCALPHA)
+        pygame.draw.circle(surface, color, Vector2(diameter/2), diameter/2)
+        return SpriteComponent(surface=surface)
 
 
 '''

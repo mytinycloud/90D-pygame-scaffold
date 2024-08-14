@@ -8,64 +8,128 @@ class Intersection():
     overlap: Vector2
     other: Entity
 
+SHAPE_BOX = 0
+SHAPE_CIRCLE = 1
+SHAPE_POINT = 2
+
 '''
 Component class to store hitbox information, and the resulting intersections.
 '''
 @enumerate_component("hitbox")
 class HitboxComponent():
-    radius_sq: float
     bounds: Vector2 = factory(Vector2) # Bounding box for initial detection
     intersections: list[Intersection] = factory(list) # list of intersections to report
     layer_mask: int         # Layer mask that this hitbox exists on
     target_mask: int = 0    # Layer mask to record collisions from
-    is_circle: bool = False
+    shape: int
 
     @staticmethod
     def from_box(size: tuple[int,int], layer: int) -> 'HitboxComponent':
         bounds = Vector2(size) / 2
         return HitboxComponent(
-            radius_sq = bounds.length_squared(),
             bounds = bounds,
             layer_mask = layer,
+            shape = SHAPE_BOX
         )
     
     @staticmethod
-    def from_circle(radius: int, layer: int) -> 'HitboxComponent':
+    def from_circle(diameter: int, layer: int) -> 'HitboxComponent':
         return HitboxComponent(
-            radius_sq = radius * radius,
-            bounds = Vector2(radius),
+            bounds = Vector2(diameter/2),
             layer_mask = layer,
-            is_circle = True
+            shape = SHAPE_CIRCLE,
         )
 
-def compute_intersection_box_box(a: Entity, b: Entity) -> Intersection:
+    @staticmethod
+    def from_point(layer: int) -> 'HitboxComponent':
+        return HitboxComponent(
+            bounds = Vector2(0),
+            layer_mask = layer,
+            shape = SHAPE_POINT,
+        ) 
+
+'''
+Computes the overlap on a single dimension.
+delta: the distance from a to b (ie, b.pos - a.pos)
+bound: the combined widths (a.width + b.width)
+Remember: the sign of the overlap will be the same as the sign of the delta.
+'''
+def _overlap(delta: float, bound: float) -> float:
+    return -(bound + delta) if delta < 0 else bound - delta
+
+def _compute_intersection_box_box(a: Entity, b: Entity) -> Intersection:
     # Bounding box check is already passed, so we can guarantee that the collision has happened.
     delta = b.motion.position - a.motion.position
-    return delta
+    bounds = a.hitbox.bounds + b.hitbox.bounds
+    overlap_x = _overlap(delta.x, bounds.x)
+    overlap_y = _overlap(delta.y, bounds.y)
+    if abs(overlap_x) < abs(overlap_y):
+        return Vector2(overlap_x, 0)
+    return Vector2(0, overlap_y)
 
+def _compute_intersection_circle_circle(a: Entity, b: Entity) -> Intersection | None:
+    delta = b.motion.position - a.motion.position
+    radius = a.hitbox.bounds.x + b.hitbox.bounds.x
+    if delta.length_squared() >= radius * radius:
+        return None
+    return (delta.normalize() * radius) - delta
 
-def compute_intersection_circle_circle(a: Entity, b: Entity) -> Intersection | None:
-    return None
-
-def compute_intersection_box_circle(a: Entity, b: Entity) -> Intersection | None:
-    return None
+def _compute_intersection_box_circle(a: Entity, b: Entity) -> Intersection | None:
+    delta = b.motion.position - a.motion.position
+    box_bounds = a.hitbox.bounds
+    # TODO: Review this.
+    # If we know the collision occurrs on the box edge, not the corner, then it reduces to a single overlap check.
+    # If the circle center enters the box, then delta degerates to zero (this is very bad).
+    
+    # Find the distance to the closest point on the circle.
+    delta.x -= max(-box_bounds.x, min(delta.x, box_bounds.x))
+    delta.y -= max(-box_bounds.y, min(delta.y, box_bounds.y))
+    
+    # Effectively a circle-circle check to the closest point on the box
+    radius = b.hitbox.bounds.x
+    if delta.length_squared() >= radius * radius:
+        return None
+    try:
+        return (delta.normalize() * radius) - delta
+    except:
+        raise Exception("Ask Tim to fix the delta=0,0 issue in box-circle checks.")
+    
+    
+def _compute_intersection_circle_box(a: Entity, b: Entity) -> Intersection | None:
+    overlap = _compute_intersection_box_circle(b, a)
+    return None if overlap == None else -overlap
 
 '''
-Computers the intersection vector for two hitboxes.
+Computes the intersection vector for two hitboxes.
 The bounding box check is assumed to have already been done.
 '''
-def compute_intersection(a: Entity, b: Entity) -> Intersection | None:
+def _compute_intersection(a: Entity, b: Entity) -> Intersection | None:
     
-    if a.hitbox.is_circle:
-        if b.hitbox.is_circle:
-            return compute_intersection_circle_circle(a, b)
-        else:
-            return -compute_intersection_box_circle(b, a)
-    else:
-        if b.hitbox.is_circle:
-            return compute_intersection_box_circle(a, b)
-        else:
-            return compute_intersection_box_box(a, b)
+    # Note, box-point and circle-point can be treated as box-box and circle-circle
+    # Because a point is equivalent to a zero width box or circle as required.
+
+    a_shape = a.hitbox.shape
+    b_shape = b.hitbox.shape
+
+    if a_shape == SHAPE_BOX:
+        if b_shape == SHAPE_CIRCLE:
+            return _compute_intersection_box_circle(a, b)
+        else: # SHAPE_BOX or SHAPE_POINT
+            return _compute_intersection_box_box(a, b)
+    elif a_shape == SHAPE_CIRCLE:
+        if b_shape == SHAPE_BOX:
+            return _compute_intersection_circle_box(a, b)
+        else: # SHAPE_CIRCLE or SHAPE_POINT
+            return _compute_intersection_circle_circle(a, b)
+    else: # a_shape == SHAPE_POINT
+        if b_shape == SHAPE_BOX:
+            return _compute_intersection_box_box(a, b)
+        elif b_shape == SHAPE_CIRCLE:
+            return _compute_intersection_circle_circle(a, b)
+        else: # b_shape == SHAPE_POINT
+            # Shouldnt occurr. Points do not collide with points.
+            return None
+
 
 
 '''
@@ -115,7 +179,7 @@ def update_collision_system(group: EntityGroup):
             
             if y_overlap:
                 # Bounding box checks pass. Do the work
-                overlap = compute_intersection(a, b)
+                overlap = _compute_intersection(a, b)
 
                 if overlap != None:
                     
