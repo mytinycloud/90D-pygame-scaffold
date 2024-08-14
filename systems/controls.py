@@ -1,4 +1,4 @@
-from engine.ecs import Component, Entity, EntityGroup, enumerate_component
+from engine.ecs import Entity, EntityGroup, enumerate_component, factory
 
 import pygame
 from pygame import Vector2
@@ -8,9 +8,8 @@ from pygame import Vector2
 Component class to store decoded control inputs
 '''
 @enumerate_component("controls")
-class ControlComponent(Component):
-    def __init__(self):
-        self.direction = Vector2(0,0)
+class ControlComponent():
+    direction: Vector2 = factory(Vector2)
 
 
 '''

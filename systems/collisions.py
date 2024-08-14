@@ -1,4 +1,4 @@
-from engine.ecs import Component, Entity, EntityGroup, enumerate_component
+from engine.ecs import Entity, EntityGroup, enumerate_component, factory
 
 from pygame import Vector2
 
@@ -7,10 +7,17 @@ from pygame import Vector2
 Component class to store decoded control inputs
 '''
 @enumerate_component("hitbox")
-class HitboxComponent(Component):
-    def __init__(self, radius: float):
-        self.radius = radius
-        self.bounds = Vector2(radius, radius)
+class HitboxComponent():
+    radius_sq: float
+    bounds: Vector2 = factory(Vector2)
+
+    @staticmethod
+    def from_box(size: tuple[int,int]) -> 'HitboxComponent':
+        bounds = Vector2(size) / 2
+        return HitboxComponent(
+            radius_sq = bounds.length_squared(),
+            bounds = bounds
+        )
 
 
 '''

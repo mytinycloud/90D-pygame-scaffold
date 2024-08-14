@@ -1,4 +1,4 @@
-from engine.ecs import Component, Entity, EntityGroup, enumerate_component
+from engine.ecs import Entity, EntityGroup, enumerate_component
 
 from .sprites import SpriteComponent
 from .motion import MotionComponent
@@ -9,9 +9,8 @@ from .collisions import HitboxComponent
 Component class to store player specific information
 '''
 @enumerate_component("player")
-class PlayerComponent(Component):
-    def __init__(self):
-        pass
+class PlayerComponent():
+    pass
 
 
 '''
@@ -33,8 +32,8 @@ def mount_player_system(group: EntityGroup):
     player = Entity("player")
     player.player = PlayerComponent()
     player.motion = MotionComponent(is_movable = True)
-    player.sprite = SpriteComponent.from_square((32,32), (255,0,0))
-    player.hitbox = HitboxComponent(16)
+    player.sprite = SpriteComponent.from_box((32,32), (255,0,0))
+    player.hitbox = HitboxComponent.from_box((32,32))
     group.add(player)
 
     group.mount_system(player_update_system)

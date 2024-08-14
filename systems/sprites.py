@@ -1,4 +1,4 @@
-from engine.ecs import Component, Entity, EntityGroup, enumerate_component
+from engine.ecs import Entity, EntityGroup, enumerate_component
 import os
 
 import pygame
@@ -13,9 +13,8 @@ from .motion import MotionComponent
 A component that contains sprite information
 '''
 @enumerate_component("sprite")
-class SpriteComponent(Component):
-    def __init__(self, surface: Surface):
-        self.surface = surface
+class SpriteComponent():
+    surface: Surface
 
     '''
     Creates a sprite from a resource file
@@ -30,7 +29,7 @@ class SpriteComponent(Component):
     Creates a filled square as a sprite
     '''
     @staticmethod
-    def from_square(size: tuple[int,int], color: tuple[int,int,int]):
+    def from_box(size: tuple[int,int], color: tuple[int,int,int]):
         surface = Surface(size)
         surface.fill(color)
         return SpriteComponent(surface)
@@ -41,8 +40,7 @@ A component that represents a camera
 '''
 @enumerate_component("camera")
 class CameraComponent():
-    def __init__(self, surface: Surface):
-        self.surface = surface
+    surface: Surface
 
 
 '''

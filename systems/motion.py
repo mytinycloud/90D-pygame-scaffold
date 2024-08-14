@@ -1,15 +1,14 @@
-from engine.ecs import Component, EntityGroup, enumerate_component
+from engine.ecs import EntityGroup, enumerate_component, factory
 from pygame import Vector2
 
 '''
 Component containing a position, velocity, ect
 '''
 @enumerate_component("motion")
-class MotionComponent(Component):
-    def __init__(self, pos: Vector2 = Vector2(0,0), is_movable: bool = False):
-        self.position = Vector2(pos)
-        self.velocity = Vector2(0,0)
-        self.is_movable = is_movable
+class MotionComponent():
+    position: Vector2 = factory(Vector2)
+    velocity: Vector2 = factory(Vector2)
+    is_movable: bool = False
 
 '''
 The motion update system:

@@ -1,15 +1,19 @@
 import typing
+import dataclasses
 
 COMPONENT_COUNT = 0
 COMPONENT_INDICES = {}
 
 '''
 Required to enable querying of a given component.
-The supplied string should be the attribute name that will be used for the component
+The supplied string should be the attribute name that will be used for the component.
+
+The component class will also be converted to a dataclass.
+Mutable fields will require factories to ensure the defaults are valid.
 
 @enumerate_component("new_component")
-class NewComponent(Component)
-    ...
+class NewComponent()
+    new_field: Vector2 = factory(Vector2)
 
 e = Entity()
 e.new_component = NewComponent()
@@ -19,9 +23,8 @@ def enumerate_component(name: str):
     COMPONENT_INDICES[name] = COMPONENT_COUNT
     COMPONENT_COUNT += 1
     def named_component_inner(component: typing.Callable):
-        return component
+        return dataclasses.dataclass(init=True, slots=True)(component)
     return named_component_inner
-
 
 '''
 Creates a bitwise mask for all components in the entity
@@ -36,19 +39,12 @@ def component_mask(components: tuple[str]):
             continue
     return mask
 
-
-class Component():
-    def __init__(self):
-        pass
-    
-    '''
-    Default way of cloning a component - a shallow copy
-    '''
-    def clone(self) -> 'Component':
-        c = Component()
-        for key, value in vars(self).items():
-            setattr(c, key, value)
-        return c
+'''
+Provides valid default arguments for components with mutable fields (required for python reasons)
+See @enumerate_component for examples.
+'''
+def factory(constructor: typing.Callable[[],typing.Any]) -> typing.Any:
+    return dataclasses.field(default_factory=constructor)
 
 '''
 An entity is a collection of components
@@ -77,7 +73,7 @@ class Entity():
         e = Entity(self.name)
         for key, value in vars(self).items():
             if key not in ["name", "mask"]:
-                setattr(e, key, value.clone())
+                setattr(e, key, dataclasses.replace(value))
         return e
     
     
