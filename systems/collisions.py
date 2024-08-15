@@ -2,7 +2,7 @@ from engine.ecs import Entity, EntityGroup, enumerate_component, factory
 from pygame import Vector2
 import dataclasses
 import typing
-
+from . import utils
 
 
 @dataclasses.dataclass(init=True, slots=True)
@@ -13,6 +13,7 @@ class Intersection():
 SHAPE_BOX = 0
 SHAPE_CIRCLE = 1
 SHAPE_POINT = 2
+SHAPE_LINE = 3
 
 '''
 Component class to store hitbox information, and the resulting intersections.
@@ -24,6 +25,7 @@ class HitboxComponent():
     layer_mask: int         # Layer mask that this hitbox exists on
     target_mask: int = 0    # Layer mask to record collisions from
     shape: int
+    invert: bool = False
 
     @staticmethod
     def from_box(size: tuple[int,int], layer: int) -> 'HitboxComponent':
@@ -33,7 +35,7 @@ class HitboxComponent():
             layer_mask = layer,
             shape = SHAPE_BOX
         )
-
+    
     @staticmethod
     def from_circle(diameter: int, layer: int) -> 'HitboxComponent':
         return HitboxComponent(
@@ -47,8 +49,23 @@ class HitboxComponent():
         return HitboxComponent(
             bounds = Vector2(0),
             layer_mask = layer,
-            shape = SHAPE_POINT,
+            shape = SHAPE_POINT
         )
+    
+    @staticmethod
+    def from_line(vector: tuple[int,int], layer: int) -> 'HitboxComponent':
+        size, invert = utils.rectify_vector(Vector2(vector))
+        return HitboxComponent(
+            bounds = size / 2,
+            layer_mask = layer,
+            shape = SHAPE_LINE,
+            invert = invert
+        )
+    
+    def get_line_end(self) -> Vector2:
+        if self.invert:
+            return Vector2(self.bounds.x, -self.bounds.y)
+        return self.bounds
 
 '''
 Computes the overlap on a single dimension.
@@ -72,6 +89,28 @@ def _overlap_circle_point(radius: float, point: Vector2) -> Vector2 | None:
         return None
     return (point.normalize() * radius) - point
 
+'''
+da: a_end from a_start
+db: b_end from b_start
+delta: b_start from a_start
+'''
+def _intersect_line_line(da: Vector2, delta: Vector2, db: Vector2) -> Vector2 | None:
+    determinant = utils.determinant(da, db)
+    
+    if abs(determinant) < 1e-10:
+        # Lines near parallel
+        return None
+    
+    # Form line equations
+    t = (delta.x * db.y - delta.y * db.x) / determinant
+    u = (delta.x * da.y - delta.y * da.x) / determinant
+    
+    # Check if the intersection point lies on both line segments
+    if 0 <= t <= 1 and 0 <= u <= 1:
+        intersect = t * da
+        return intersect
+    return None
+
 def _compute_intersection_box_box(delta: Vector2, a: HitboxComponent, b: HitboxComponent) -> Vector2:
     return _overlap_box_point(a.bounds + b.bounds, delta)
 
@@ -80,9 +119,7 @@ def _compute_intersection_circle_circle(delta: Vector2, a: HitboxComponent, b: H
 
 def _compute_intersection_box_circle(delta: Vector2, a: HitboxComponent, b: HitboxComponent) -> Vector2 | None:
     box = a.bounds
-    
     # If a the circle center overlaps one axis, it reduces to a box-box check.
-    # Note - this still expects the bounding box check already having passed.
     if abs(delta.x) <= box.x or abs(delta.y) <= box.y:
         return _overlap_box_point(a.bounds + b.bounds, delta)
 
@@ -90,6 +127,23 @@ def _compute_intersection_box_circle(delta: Vector2, a: HitboxComponent, b: Hitb
     delta.x -= -box.x if delta.x < 0 else box.x
     delta.y -= -box.y if delta.y < 0 else box.y
     return _overlap_circle_point(b.bounds.x, delta)
+
+def _compute_intersection_box_line(delta: Vector2, a: HitboxComponent, b: HitboxComponent) -> Vector2 | None:
+    return None
+
+def _compute_intersection_circle_line(delta: Vector2, a: HitboxComponent, b: HitboxComponent) -> Vector2 | None:
+    line = b.get_line_end()
+    circle_span = utils.rotate_vector_cw(line).normalize() * a.bounds.x
+    intersection = _intersect_line_line(circle_span, delta - line, line * 2)
+    if not intersection:
+        return None
+    return circle_span - intersection
+
+def _compute_intersection_line_line(delta: Vector2, a: HitboxComponent, b: HitboxComponent) -> Vector2 | None:
+    da = a.get_line_end()
+    db = b.get_line_end()
+    intersection = _intersect_line_line(da * 2, delta - (db + da), db * 2)
+    return Vector2(0) if intersection != None else None
 
 '''
 Reverses the signature of an intersection function.
@@ -102,6 +156,8 @@ def _invert_intersection_fn( fn: typing.Callable[[Vector2, HitboxComponent,Hitbo
     return inv_fn
 
 _compute_intersection_circle_box = _invert_intersection_fn(_compute_intersection_box_circle)
+_compute_intersection_line_box = _invert_intersection_fn(_compute_intersection_box_line)
+_compute_intersection_line_circle = _invert_intersection_fn(_compute_intersection_circle_line)
 
 '''
 Computes the intersection vector for two hitboxes.
@@ -111,26 +167,40 @@ def _compute_intersection(delta: Vector2, a: HitboxComponent, b: HitboxComponent
     
     # Note, box-point and circle-point can be treated as box-box and circle-circle
     # Because a point is equivalent to a zero width box or circle as required.
+
     a_shape = a.shape
     b_shape = b.shape
 
     if a_shape == SHAPE_BOX:
         if b_shape == SHAPE_CIRCLE:
             return _compute_intersection_box_circle(delta, a, b)
+        elif b_shape == SHAPE_LINE:
+            return _compute_intersection_box_line(delta, a, b)
         else: # SHAPE_BOX or SHAPE_POINT
             return _compute_intersection_box_box(delta, a, b)
     elif a_shape == SHAPE_CIRCLE:
         if b_shape == SHAPE_BOX:
             return _compute_intersection_circle_box(delta, a, b)
+        elif b_shape == SHAPE_LINE:
+            return _compute_intersection_circle_line(delta, a, b)
         else: # SHAPE_CIRCLE or SHAPE_POINT
             return _compute_intersection_circle_circle(delta, a, b)
+    elif a_shape == SHAPE_LINE:
+        if b_shape == SHAPE_BOX:
+            return _compute_intersection_line_box(delta, a, b)
+        elif b_shape == SHAPE_CIRCLE:
+            return _compute_intersection_line_circle(delta, a, b)
+        elif b_shape == SHAPE_LINE:
+            return _compute_intersection_line_line(delta, a, b)
+        else: # SHAPE_POINT
+            return None # Points do not collide with rays
     else: # a_shape == SHAPE_POINT
         if b_shape == SHAPE_BOX:
             return _compute_intersection_box_box(delta, a, b)
         elif b_shape == SHAPE_CIRCLE:
             return _compute_intersection_circle_circle(delta, a, b)
-        else: # b_shape == SHAPE_POINT
-            # Shouldnt occurr. Points do not collide with points.
+        else: # SHAPE_RAY or SHAPE_POINT
+            # Shouldnt occurr. Points do not collide with points or rays.
             return None
 
 

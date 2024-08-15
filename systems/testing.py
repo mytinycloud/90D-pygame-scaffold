@@ -30,17 +30,23 @@ def testing_system(group: EntityGroup):
 Mount the testing system any testing init
 '''
 def mount_testing_system(group: EntityGroup):
-
+    
     e = Entity("box")
     e.motion = MotionComponent(position=Vector2(100,100))
     e.sprite = SpriteComponent.from_box((32,32), (0,0,255))
     e.hitbox = HitboxComponent.from_box((32,32), 1)
     group.add(e)
 
-    e = e.clone()
-    e.motion.position = Vector2(150,90)
+    e = Entity("circle")
+    e.motion = MotionComponent(position=Vector2(150,90))
     e.hitbox = HitboxComponent.from_circle(32, 1)
     e.sprite = SpriteComponent.from_circle(32, (0,0,255))
+    group.add(e)
+
+    e = Entity("ray")
+    e.motion = MotionComponent(position=Vector2(200,110))
+    e.hitbox = HitboxComponent.from_line((20,50), 1)
+    e.sprite = SpriteComponent.from_line((20,50), 5, (0,0,255))
     group.add(e)
 
     group.mount_system(testing_system)

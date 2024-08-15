@@ -6,7 +6,7 @@ from pygame.surface import Surface
 from pygame import Vector2
 
 from .motion import MotionComponent
-
+from . import utils
 
 
 '''
@@ -42,6 +42,19 @@ class SpriteComponent():
         surface = Surface((diameter, diameter), pygame.SRCALPHA)
         pygame.draw.circle(surface, color, Vector2(diameter/2), diameter/2)
         return SpriteComponent(surface=surface)
+
+        
+    @staticmethod
+    def from_line(vector: tuple[int,int], width: int, color: tuple[int,int,int]):
+        size, invert = utils.rectify_vector(Vector2(vector))
+
+        surface = Surface(size, pygame.SRCALPHA)
+        if invert:
+            pygame.draw.line(surface, color, (0, size[1]), (size[0], 0), width)
+        else:
+            pygame.draw.line(surface, color, Vector2(0), size, width)
+        return SpriteComponent(surface=surface)
+
 
 
 '''
