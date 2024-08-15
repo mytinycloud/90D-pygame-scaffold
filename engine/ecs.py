@@ -84,19 +84,23 @@ class EntityGroup():
         self.entities: list[Entity] = []
         self.systems: list[SystemFunction] = []
         self._singleton_cache: dict[int, Entity] = {}
+        self._add_entity_queue: list[Entity] = []
+        self._remove_entity_queue: list[Entity] = []
 
     '''
     Add a new entity to the group. The components must already be assigned, as they are used for component masks.
+    This is deferred till the start of the next frame.
     '''
     def add(self, entity: Entity):
         entity.mask = component_mask(vars(entity).keys())
-        self.entities.append(entity)
+        self._add_entity_queue.append(entity)
 
     '''
     Remove an entity from the group.
+    This is deferred till the start of the next frame.
     '''
     def remove(self, entity: Entity):
-        self.entities.remove(entity)
+        self._remove_entity_queue.append(entity)
 
     '''
     Adds a new system
@@ -108,6 +112,7 @@ class EntityGroup():
     Run all the mounted systems (in the order they were mounted)
     '''
     def run_systems(self):
+        self._flush_entity_queues()
         for system in self.systems:
             system(self)
 
@@ -133,3 +138,22 @@ class EntityGroup():
             except StopIteration:
                 raise Exception(f"Singleton not found with [{', '.join(components)}]")
         return self._singleton_cache[mask]
+    
+    '''
+    Flushes the internal queues used for entity addition or removal
+    '''
+    def _flush_entity_queues(self):
+
+        # Remove deleted entities
+        if len(self._remove_entity_queue):
+            for e in self._remove_entity_queue:
+                try:
+                    self.entities.remove(e)
+                except ValueError:
+                    continue # An entity could be removed twice. Ignore it.
+            self._remove_entity_queue.clear()
+
+        # Add new entities
+        if len(self._add_entity_queue):
+            self.entities.extend(self._add_entity_queue)
+            self._add_entity_queue.clear()
