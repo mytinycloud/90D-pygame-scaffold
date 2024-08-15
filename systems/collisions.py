@@ -55,7 +55,7 @@ bound: the combined widths (a.width + b.width)
 Remember: the sign of the overlap will be the same as the sign of the delta.
 '''
 def _overlap(delta: float, bound: float) -> float:
-    return -(bound + delta) if delta < 0 else bound - delta
+    return (-bound if delta < 0 else bound) - delta
 
 def _compute_intersection_box_box(a: Entity, b: Entity) -> Intersection:
     # Bounding box check is already passed, so we can guarantee that the collision has happened.
@@ -79,6 +79,7 @@ def _compute_intersection_box_circle(a: Entity, b: Entity) -> Intersection | Non
     box = a.hitbox.bounds
     
     # If a the circle center overlaps one axis, it reduces to a box-box check.
+    # Note - this still expects the bounding box check already having passed.
     if abs(delta.x) <= box.x or abs(delta.y) <= box.y:
         return _compute_intersection_box_box(a, b)
 
