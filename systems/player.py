@@ -22,7 +22,7 @@ def player_update_system(group: EntityGroup):
     controls = group.query_singleton('controls').controls
 
     for player in group.query('player'):
-        player.motion.velocity = controls.direction * 100
+        player.motion.velocity = controls.direction * (200 if "sprint" in controls.actions else 100)
 
 
 '''

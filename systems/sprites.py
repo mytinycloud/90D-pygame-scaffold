@@ -24,7 +24,7 @@ class SpriteComponent():
         resource = os.path.join("resources", resource)
         surface = pygame.image.load(resource)
         return SpriteComponent(surface=surface)
-    
+
     '''
     Creates a filled square as a sprite
     '''
@@ -33,7 +33,7 @@ class SpriteComponent():
         surface = Surface(size)
         surface.fill(color)
         return SpriteComponent(surface=surface)
-    
+
     '''
     Creates a filled circle as a sprite
     '''
@@ -63,7 +63,6 @@ def draw_sprite_system(group: EntityGroup):
     origin = Vector2(surface.get_size()) / 2 - camera.motion.position
 
     for e in group.query('sprite', 'motion'):
-        
         size = Vector2(e.sprite.surface.get_size())
         sprite_pos = e.motion.position + origin - size / 2
 
@@ -79,6 +78,6 @@ def mount_sprite_system(group: EntityGroup, target: Surface):
     camera.camera = CameraComponent(surface=target)
     camera.motion = MotionComponent()
     group.add(camera)
-    
+
     group.mount_system(draw_sprite_system)
 

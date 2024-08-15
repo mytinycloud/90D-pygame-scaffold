@@ -31,7 +31,7 @@ class HitboxComponent():
             layer_mask = layer,
             shape = SHAPE_BOX
         )
-    
+
     @staticmethod
     def from_circle(diameter: int, layer: int) -> 'HitboxComponent':
         return HitboxComponent(
@@ -46,7 +46,7 @@ class HitboxComponent():
             bounds = Vector2(0),
             layer_mask = layer,
             shape = SHAPE_POINT,
-        ) 
+        )
 
 '''
 Computes the overlap on a single dimension.
@@ -77,7 +77,7 @@ def _compute_intersection_circle_circle(a: Entity, b: Entity) -> Intersection | 
 def _compute_intersection_box_circle(a: Entity, b: Entity) -> Intersection | None:
     delta = b.motion.position - a.motion.position
     box = a.hitbox.bounds
-    
+
     # If a the circle center overlaps one axis, it reduces to a box-box check.
     # Note - this still expects the bounding box check already having passed.
     if abs(delta.x) <= box.x or abs(delta.y) <= box.y:
@@ -86,14 +86,14 @@ def _compute_intersection_box_circle(a: Entity, b: Entity) -> Intersection | Non
     # Identify the box corner closest to the circle, and get the distance to that.
     delta.x -= -box.x if delta.x < 0 else box.x
     delta.y -= -box.y if delta.y < 0 else box.y
-    
+
     # Effectively a circle-circle check to the closest point on the box
     radius = b.hitbox.bounds.x
     if delta.length_squared() >= radius * radius:
         return None
     return (delta.normalize() * radius) - delta
-    
-    
+
+
 def _compute_intersection_circle_box(a: Entity, b: Entity) -> Intersection | None:
     overlap = _compute_intersection_box_circle(b, a)
     return -overlap if overlap != None else None
@@ -103,7 +103,7 @@ Computes the intersection vector for two hitboxes.
 The bounding box check is assumed to have already been done.
 '''
 def _compute_intersection(a: Entity, b: Entity) -> Intersection | None:
-    
+
     # Note, box-point and circle-point can be treated as box-box and circle-circle
     # Because a point is equivalent to a zero width box or circle as required.
 
@@ -136,13 +136,13 @@ Collision detection system:
 Detect any entities in collision, and add store them in the intersections mask
 '''
 def update_collision_system(group: EntityGroup):
-    
+
     # Sort by the leftmost positon (this makes sense later.)
     collidables = sorted(
         group.query("hitbox", "motion"),
         key = lambda e: e.motion.position.x - e.hitbox.bounds.x
         )
-    
+
     # Clear last ticks intersection information
     for e in collidables:
         if len(e.hitbox.intersections):
@@ -164,7 +164,7 @@ def update_collision_system(group: EntityGroup):
             # No more collisions possible ahead of us. Prune this branch.
             if leftmost >= rightmost:
                 break
-            
+
             a_targets_b = a.hitbox.target_mask & b.hitbox.layer_mask
             b_targets_a = b.hitbox.target_mask & a.hitbox.layer_mask
 
@@ -175,13 +175,13 @@ def update_collision_system(group: EntityGroup):
             # Ok. X axis overlaps. Does Y?
             y_overlap = a_pos.y - a_bounds.y < b_pos.y + b_bounds.y \
                     and a_pos.y + a_bounds.y > b_pos.y - b_bounds.y
-            
+
             if y_overlap:
                 # Bounding box checks pass. Do the work
                 overlap = _compute_intersection(a, b)
 
                 if overlap != None:
-                    
+
                     if a_targets_b:
                         a.hitbox.intersections.append(Intersection( overlap, b ))
                     if b_targets_a:
