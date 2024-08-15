@@ -58,7 +58,7 @@ Use the camera position to draw all entities with a sprite at their relative loc
 '''
 def draw_sprite_system(group: EntityGroup):
 
-    camera = group.query_singleton('camera')
+    camera = group.query_singleton('camera', 'motion')
     surface = camera.camera.surface
     origin = Vector2(surface.get_size()) / 2 - camera.motion.position
 
