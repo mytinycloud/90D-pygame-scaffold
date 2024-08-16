@@ -50,6 +50,7 @@ A component that represents a camera
 @enumerate_component("camera")
 class CameraComponent():
     surface: Surface
+    is_locked: bool = True
 
 
 '''
@@ -81,7 +82,7 @@ Mounts the sprite drawing system, and adds a camera component for the viewport
 def mount_sprite_system(group: EntityGroup, target: Surface):
     camera = Entity("camera")
     camera.camera = CameraComponent(surface=target)
-    camera.motion = MotionComponent()
+    camera.motion = MotionComponent(is_movable=True)
     group.add(camera)
 
     group.mount_system(draw_sprite_system)

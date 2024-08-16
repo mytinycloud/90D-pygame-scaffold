@@ -10,6 +10,7 @@ key_mapping = {
     pygame.K_d: ["right"],
     pygame.K_LSHIFT: ["sprint"],
     pygame.K_SPACE: ["spawn"],
+    pygame.K_l: ["camera_lock"],
 }
 
 '''

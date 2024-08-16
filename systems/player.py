@@ -19,6 +19,10 @@ Update the players velocity based on the controls
 '''
 def player_update_system(group: EntityGroup):
 
+    camera = group.query_singleton('camera').camera
+    if not camera.is_locked:
+        return
+
     controls = group.query_singleton('controls').controls
 
     for player in group.query('player'):
