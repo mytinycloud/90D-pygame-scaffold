@@ -8,6 +8,7 @@ Component containing a position, velocity, ect
 class MotionComponent():
     position: Vector2 = factory(Vector2)
     velocity: Vector2 = factory(Vector2)
+    rotation: float = 0
     is_movable: bool = False
 
 '''

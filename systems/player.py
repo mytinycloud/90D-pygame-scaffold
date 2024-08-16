@@ -19,6 +19,10 @@ Update the players velocity based on the controls
 '''
 def player_update_system(group: EntityGroup):
 
+    camera = group.query_singleton('camera').camera
+    if not camera.is_locked:
+        return
+
     controls = group.query_singleton('controls').controls
 
     for player in group.query('player'):
@@ -32,8 +36,8 @@ def mount_player_system(group: EntityGroup):
     player = Entity("player")
     player.player = PlayerComponent()
     player.motion = MotionComponent(is_movable = True)
-    player.sprite = SpriteComponent.from_circle(32, (255,0,0))
-    player.hitbox = HitboxComponent.from_circle(32, 1)
+    player.sprite = SpriteComponent.from_box((32, 32), (255,0,0))
+    player.hitbox = HitboxComponent.from_box(32, 1)
     player.hitbox.target_mask = 1
     group.add(player)
 
