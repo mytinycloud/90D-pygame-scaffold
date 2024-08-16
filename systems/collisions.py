@@ -62,10 +62,9 @@ class HitboxComponent():
             invert = invert
         )
     
-    def get_line_end(self) -> Vector2:
-        if self.invert:
-            return Vector2(self.bounds.x, -self.bounds.y)
-        return self.bounds
+    def get_line_vector(self, delta: Vector2 = Vector2(0)) -> tuple[Vector2, Vector2]:
+        v = Vector2(self.bounds.x, -self.bounds.y) if self.invert else self.bounds
+        return delta - v, v * 2
 
 '''
 Computes the overlap on a single dimension.
@@ -89,28 +88,6 @@ def _overlap_circle_point(radius: float, point: Vector2) -> Vector2 | None:
         return None
     return (point.normalize() * radius) - point
 
-'''
-da: a_end from a_start
-db: b_end from b_start
-delta: b_start from a_start
-'''
-def _intersect_line_line(da: Vector2, delta: Vector2, db: Vector2) -> Vector2 | None:
-    determinant = utils.determinant(da, db)
-    
-    if abs(determinant) < 1e-10:
-        # Lines near parallel
-        return None
-    
-    # Form line equations
-    t = (delta.x * db.y - delta.y * db.x) / determinant
-    u = (delta.x * da.y - delta.y * da.x) / determinant
-    
-    # Check if the intersection point lies on both line segments
-    if 0 <= t <= 1 and 0 <= u <= 1:
-        intersect = t * da
-        return intersect
-    return None
-
 def _compute_intersection_box_box(delta: Vector2, a: HitboxComponent, b: HitboxComponent) -> Vector2:
     return _overlap_box_point(a.bounds + b.bounds, delta)
 
@@ -123,26 +100,41 @@ def _compute_intersection_box_circle(delta: Vector2, a: HitboxComponent, b: Hitb
     if abs(delta.x) <= box.x or abs(delta.y) <= box.y:
         return _overlap_box_point(a.bounds + b.bounds, delta)
 
-    # Identify the box corner closest to the circle, and get the distance to that.
-    delta.x -= -box.x if delta.x < 0 else box.x
-    delta.y -= -box.y if delta.y < 0 else box.y
-    return _overlap_circle_point(b.bounds.x, delta)
+    # Identify the box corner closest to the circle
+    corner = Vector2(
+        -box.x if delta.x < 0 else box.x,
+        -box.y if delta.y < 0 else box.y
+    )
+    return _overlap_circle_point(b.bounds.x, delta - corner)
 
 def _compute_intersection_box_line(delta: Vector2, a: HitboxComponent, b: HitboxComponent) -> Vector2 | None:
     return None
 
 def _compute_intersection_circle_line(delta: Vector2, a: HitboxComponent, b: HitboxComponent) -> Vector2 | None:
-    line = b.get_line_end()
-    circle_span = utils.rotate_vector_cw(line).normalize() * a.bounds.x
-    intersection = _intersect_line_line(circle_span, delta - line, line * 2)
-    if not intersection:
-        return None
-    return circle_span - intersection
+    line_start, line = b.get_line_vector(delta)
+    line_end = line_start + line
+    radius = a.bounds.x
+    line_normal = utils.rotate_vector_cw(line)
+    
+    # Draw a chord across the circle normal to the line.
+    # If these intersect, we have a collision
+    if utils.vector_projects_to(line_normal, line_start, line_end):
+        circle_span = line_normal.normalize() * radius
+        intersection = utils.vector_intersection(circle_span * 2, line_start + circle_span, line)
+        if intersection == None:
+            return None
+        return _overlap_circle_point(radius, intersection - circle_span)
+    
+    # Try the endpoints instead
+    intersection = _overlap_circle_point(radius, line_start)
+    if intersection != None:
+        return intersection
+    return _overlap_circle_point(radius, line_end)
 
 def _compute_intersection_line_line(delta: Vector2, a: HitboxComponent, b: HitboxComponent) -> Vector2 | None:
-    da = a.get_line_end()
-    db = b.get_line_end()
-    intersection = _intersect_line_line(da * 2, delta - (db + da), db * 2)
+    a_start, a_line = a.get_line_vector()
+    b_start, b_line = b.get_line_vector(delta)
+    intersection = utils.vector_intersection(a_line, b_start, b_line)
     return Vector2(0) if intersection != None else None
 
 '''

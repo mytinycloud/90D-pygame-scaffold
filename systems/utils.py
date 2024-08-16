@@ -30,3 +30,35 @@ Compute the determinant of two vectors
 '''
 def determinant(a: Vector2, b: Vector2) -> float:
     return (a.x * b.y) - (a.y * b.x)
+
+'''
+Returns true if the point is left of the vector
+'''
+def is_left(v: Vector2, delta: Vector2) -> bool:
+    return (v.x * delta.y) > (v.y * delta.x)
+
+'''
+Returns true if the vector V may project to the line defined by a1-a2
+'''
+def vector_projects_to(v: Vector2, a1: Vector2, a2: Vector2) -> True:
+    return is_left(v, a1) != is_left(v, a2)
+
+'''
+Returns the intersection of two vectors va, vb.
+vb is offset by delta. Intersection will be relative to va.
+'''
+def vector_intersection(va: Vector2, delta: Vector2, vb: Vector2) -> Vector2 | None:
+    det = determinant(va, vb)
+    
+    if abs(det) < 1e-10:
+        # Lines near parallel
+        return None
+    
+    # Form line equations
+    t = (delta.x * vb.y - delta.y * vb.x) / det
+    u = (delta.x * va.y - delta.y * va.x) / det
+    
+    # Check if the intersection point lies on both line segments
+    if 0 <= t <= 1 and 0 <= u <= 1:
+        return t * va
+    return None
