@@ -23,6 +23,14 @@ class ControlComponent():
     mouse_position: Vector2 = factory(Vector2)
     mouse_camera_position: Vector2 = factory(Vector2)
 
+def update_action(past_actions: list[str], actions: list[str], action: str, enabled: bool):
+    if enabled:
+        actions.append(action)
+        if not action in past_actions:
+            actions.append(action + "_start")
+    elif action in past_actions:
+        actions.append(action + "_end")
+
 '''
 The controls handling system:
 Read inputs from the keyboard, and store them in the controls component
@@ -36,24 +44,12 @@ def update_controls_system(group: EntityGroup):
 
     for key in key_mapping:
         for action in key_mapping[key]:
-            if keys[key]:
-                controls.actions.append(action)
-                if not action in past_actions:
-                    controls.actions.append(action + "_start")
-            elif action in past_actions:
-                controls.actions.append(action + "_end")
+            action_enabled = keys[key]
+            update_action(past_actions, controls.actions, action, action_enabled)
 
-    # TODO: Crunch this and above into one function
-    button_number = 0
-    for button in pygame.mouse.get_pressed():
-        button_number += 1
+    for button_number, button_pressed in enumerate(pygame.mouse.get_pressed()):
         action = f"mouse_{button_number}"
-        if button:
-            controls.actions.append(action)
-            if not action in past_actions:
-                controls.actions.append(action + "_start")
-        elif action in past_actions:
-            controls.actions.append(action + "_end")
+        update_action(past_actions, controls.actions, action, button_pressed)
 
     mouse_pos = pygame.mouse.get_pos()
     controls.mouse_position = Vector2(mouse_pos)
