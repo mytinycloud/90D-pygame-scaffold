@@ -18,7 +18,7 @@ Component class to store decoded control inputs
 @enumerate_component("controls")
 class ControlComponent():
     direction: Vector2 = factory(Vector2)
-    actions: list =  factory(list)
+    actions: list[str] =  factory(list)
     mouse_position: Vector2 = factory(Vector2)
     mouse_camera_position: Vector2 = factory(Vector2)
 
@@ -30,24 +30,24 @@ def update_controls_system(group: EntityGroup):
 
     controls: ControlComponent = group.query_singleton('controls').controls
     past_actions = controls.actions
-    controls.actions = list()
+    controls.actions = []
     keys = pygame.key.get_pressed()
 
     for key in key_mapping:
         for action in key_mapping[key]:
             if keys[key]:
                 controls.actions.append(action)
-                if past_actions.count(action) == 0:
+                if not action in past_actions:
                     controls.actions.append(action + "_start")
-            elif past_actions.count(action) > 0:
+            elif action in past_actions:
                 controls.actions.append(action + "_end")
 
     mouse = pygame.mouse.get_pos()
     controls.mouse_position = Vector2(mouse)
     camera = group.query_singleton('camera', 'motion')
     motion = camera.motion
-    surface = camera.camera.surface
-    controls.mouse_camera_position = mouse + motion.position - Vector2(surface.get_size()) / 2
+    screen_size = Vector2(camera.camera.surface.get_size())
+    controls.mouse_camera_position = mouse + motion.position - screen_size / 2
 
     controls.direction = Vector2(
         int(keys[pygame.K_d]) - int(keys[pygame.K_a]),
