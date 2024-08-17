@@ -3,6 +3,7 @@ from engine.window import Window
 from engine.ecs import EntityGroup
 
 import systems
+import systems.enemy
 
 # Build objects
 window = Window()
@@ -14,6 +15,7 @@ systems.time.mount_time_system(group, window.clock)
 systems.turn.mount_turn_system(group)
 systems.controls.mount_control_system(group)
 systems.player.mount_player_system(group)
+systems.enemy.mount_enemy_system(group)
 systems.effect.mount_effect_system(group)
 systems.motion.mount_motion_system(group)
 systems.testing.mount_testing_system(group)
