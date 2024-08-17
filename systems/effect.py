@@ -1,10 +1,13 @@
 from engine.ecs import Entity, EntityGroup, enumerate_component, factory
 from pygame import Vector2
+from dataclasses import dataclass
 
 from .sprites import SpriteComponent
 from .motion import MotionComponent
 from .controls import ControlComponent
+from .tilemap import TilemapComponent
 from . import turn
+from . import tilemap
 
 
 EFFECT_WAVE = 0
@@ -18,7 +21,11 @@ Component class to store effect information
 class EffectComponent():
     direction: Vector2 = factory(Vector2)
     energy: int = 1
-    type: bool = EFFECT_WAVE
+    type: int = EFFECT_WAVE
+    harvests: dict[int,tuple[int,int]] = factory(dict)
+
+    def add_harvest(self, tile_in: int, tile_out: int, energy: int):
+        self.harvests[tile_in] = (tile_out, energy)
 
 
 
@@ -32,16 +39,25 @@ def effect_update_system(group: EntityGroup):
 
     if t.state != turn.TURN_EFFECTS:
         return
+    
+    map: TilemapComponent = group.query_singleton('tilemap').tilemap
 
     for e in group.query("effect", "motion"):
         
         effect: EffectComponent = e.effect
         motion: MotionComponent = e.motion
+
+        # Harvesting
+        tile = map.get_tile(motion.position)
+        if tile in effect.harvests:
+            new_tile, energy_gain = effect.harvests[tile]
+            map.set_tile(motion.position, new_tile)
+            effect.energy += energy_gain
         
         # Propagation
         if effect.energy > 1:
             if effect.type == EFFECT_WAVE:
-                # all energy is transferred to the new entity
+                # Waves transfer all energy forward.
                 energy_transfer = effect.energy - 1
                 group.add(propagate_entity(e, motion.position + effect.direction, energy_transfer))
                 effect.energy -= energy_transfer
@@ -72,14 +88,14 @@ def create_effect_templates():
     e.motion = MotionComponent()
     e.sprite = SpriteComponent.from_circle(16, (255,0,0))
     e.effect = EffectComponent()
-    e.effect.energy = 3
     effect_dict["fire"] = e
 
     e = Entity("effect-wave")
     e.motion = MotionComponent()
     e.sprite = SpriteComponent.from_circle(16, (0,0,255))
     e.effect = EffectComponent()
-    e.effect.energy = 3
+    e.effect.add_harvest(tilemap.TILE_WATER, tilemap.TILE_MUD, 3)
+    e.effect.add_harvest(tilemap.TILE_EARTH, tilemap.TILE_MUD, 0)
     effect_dict["wave"] = e
 
     return effect_dict
@@ -102,5 +118,3 @@ Mounts the effect updating system
 '''
 def mount_effect_system(group: EntityGroup):
     group.mount_system(effect_update_system)
-
-    group.add( create_effect("wave", Vector2(3,3), Vector2(1,0) ) )

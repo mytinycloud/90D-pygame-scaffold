@@ -56,13 +56,13 @@ class TilemapComponent():
         if not self.bounds.contains((0,0), coord):
             return None
         
-        return self.map[int(coord[0])][int(coord[1])]
+        return self.map[int(coord[1])][int(coord[0])]
     
     def set_tile(self, coord: Union[Vector2, tuple[int, int]], tile: Tile):
         if not self.bounds.contains((0,0), coord):
             pass
 
-        self.map[int(coord[0])][int(coord[1])] = tile
+        self.map[int(coord[1])][int(coord[0])] = tile
 
     @staticmethod
     def from_map(map: Tilemap):

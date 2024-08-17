@@ -23,9 +23,9 @@ def motion_update_system(group: EntityGroup):
     if t.waiting:
         return
     
-    tilemap: TilemapComponent = group.query_singleton("tilemap")
-    bounds_min = Vector2(0,0)
-    bounds_max = Vector2(16,16) #tilemap.get
+    tilemap: TilemapComponent = group.query_singleton("tilemap").tilemap
+    bounds_min = Vector2(tilemap.bounds.topleft)
+    bounds_max = Vector2(tilemap.bounds.bottomright) - Vector2(1)
 
     # Update the position of all entities with a velocity
     for e in group.query('motion'):
