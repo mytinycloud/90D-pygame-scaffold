@@ -44,12 +44,15 @@ class SpriteComponent():
         return SpriteComponent(surface=surface)
 
 
+TILE_SCALE = 32
+
 '''
 A component that represents a camera
 '''
 @enumerate_component("camera")
 class CameraComponent():
     surface: Surface
+    scale: float = TILE_SCALE
 
 
 '''
@@ -59,20 +62,25 @@ Use the camera position to draw all entities with a sprite at their relative loc
 def draw_sprite_system(group: EntityGroup):
 
     camera = group.query_singleton('camera', 'motion')
-    camera_motion: MotionComponent = camera.motion
     surface: Surface = camera.camera.surface
-    origin = Vector2(surface.get_size()) / 2 - camera_motion.position
+    origin = Vector2(surface.get_size()) / 2 - camera.motion.position
+
+    scale = camera.camera.scale
+
+    sprite_scale = Vector2(camera.camera.scale / TILE_SCALE)
 
     for e in group.query('sprite', 'motion'):
         
         motion: MotionComponent = e.motion
         sprite: SpriteComponent = e.sprite
         
-        size = Vector2(e.sprite.surface.get_size())
-        sprite_pos = motion.position + origin - size / 2
+        size = Vector2(sprite.surface.get_size())
+        sprite_pos = motion.position * scale + origin - size / 2
+
+        scaled_sprite = pygame.transform.scale_by(sprite.surface, sprite_scale)
 
         # Note, we are ignoring any screen-space culling
-        surface.blit(e.sprite.surface, sprite_pos)
+        surface.blit(scaled_sprite, sprite_pos)
 
 
 '''
