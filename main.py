@@ -1,3 +1,4 @@
+from init import init
 from engine.window import Window
 from engine.ecs import EntityGroup
 
@@ -19,6 +20,9 @@ systems.collisions.mount_collision_system(group)
 systems.lifetime.mount_lifetime_system(group)
 systems.testing.mount_testing_system(group)
 systems.sprites.mount_sprite_system(group, window.surface)
+
+# Game Initialization
+init(group, window)
 
 # Main loop
 while not window.exited:
