@@ -4,7 +4,7 @@ from .motion import MotionComponent
 from .sprites import SpriteComponent
 from .player import PlayerComponent
 from .turn import TurnComponent
-from .health import HealthComponent
+from .health import HealthComponent, reduce_player_health
 from . import turn
 
 from math import copysign
@@ -18,18 +18,26 @@ class EnemyComponent:
     damage: int
 
 '''
-Update enemy systems only taking into account when it's the enemies turn
+Update enemy systems including motion and when to do damage to player
+(based on sharing same position on grid)
 '''
 def enemy_update_system(group: EntityGroup):
 
     player: PlayerComponent = group.query_singleton('player')
     t: TurnComponent = group.query_singleton('turn').turn
 
+    # Prior to enemy movement, 
+    # check if any health related actions need to be carried out
+    if (t.state == turn.TURN_ENEMY or t.state == turn.TURN_PLAYER):
+        for e in group.query('enemy', 'health'):
+            if player.motion.position == e.motion.position:
+                reduce_player_health(player, e.enemy.damage)
+                group.remove(entity = e)
+
     if (t.state != turn.TURN_ENEMY):
         return 
     
     for e in group.query('enemy'):
-
         motion: MotionComponent = e.motion
         mtp = move_towards_player(player.motion.position, e.motion.position)
         motion.velocity = mtp

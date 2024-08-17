@@ -7,7 +7,7 @@ from .player import PlayerComponent
 from .enemy import create_enemy
 from .effect import create_effect
 
-import random
+from random import choice
 '''
 Just a place to add some in-development / testing code
 '''
@@ -21,6 +21,12 @@ Mount the testing system any testing init
 '''
 def mount_testing_system(group: EntityGroup):
     group.add(create_enemy((8,5)))
+
+    # Create group of enemies randomly placed on map.
+    for i in range(4):
+        enemy = create_enemy((choice(range(5,15)), choice(range(5,15))))
+        group.add(enemy)
+
     group.add(create_effect("wave", Vector2(2,3), Vector2(1,0)))
     group.add(create_effect("fire", Vector2(3,10)))
     group.add(create_effect("growth", Vector2(9,5)))

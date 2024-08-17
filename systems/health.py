@@ -1,7 +1,4 @@
 from engine.ecs import EntityGroup, enumerate_component
-from .turn import TurnComponent
-
-from . import turn
 
 @enumerate_component("health")
 class HealthComponent:
@@ -11,15 +8,8 @@ class HealthComponent:
 Update health system for 
 '''
 def update_health_system(group: EntityGroup):
+    pass
 
-    p = group.query_singleton('player')
-    t:TurnComponent = group.query_singleton('turn').turn
-
-    if (t.state == turn.TURN_ENEMY or t.state == turn.TURN_PLAYER):
-        for e in group.query('enemy', 'health'):
-            if p.motion.position == e.motion.position:
-                reduce_player_health(p, e.enemy.damage)
-                group.remove(entity = e)
 
 '''
 Mount health system
@@ -34,5 +24,5 @@ directly from the enemy component damage value
 '''
 def reduce_player_health(player, value):
     player.health.health -= value 
-    print('new player health: ', player.health)
+    print('new player health: ', player.health.health)
     return
