@@ -6,5 +6,7 @@ from . import controls
 from . import testing
 from . import time
 from . import turn
+from . import effect
+from . import spell
 from . import health
 from . import enemy

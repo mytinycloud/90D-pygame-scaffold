@@ -3,14 +3,17 @@ from engine.ecs import Entity, EntityGroup, enumerate_component, factory
 import pygame
 from pygame import Vector2
 
+from systems.motion import MotionComponent
+from systems.sprites import CameraComponent
+from systems.utils import round_vector
+
 key_mapping = {
     pygame.K_w: ["up"],
     pygame.K_a: ["left"],
     pygame.K_s: ["down"],
     pygame.K_d: ["right"],
-    pygame.K_LSHIFT: ["sprint"],
-    pygame.K_SPACE: ["spawn"],
-    pygame.K_l: ["camera_lock"],
+    pygame.K_SPACE: ["skip"],
+    pygame.K_1: ["select_spell_1"],
 }
 
 '''
@@ -22,6 +25,7 @@ class ControlComponent():
     actions: list[str] =  factory(list)
     mouse_position: Vector2 = factory(Vector2)
     mouse_camera_position: Vector2 = factory(Vector2)
+    mouse_grid_position: Vector2 = factory(Vector2)
 
 def update_action(past_actions: list[str], actions: list[str], action: str, enabled: bool):
     if enabled:
@@ -29,7 +33,7 @@ def update_action(past_actions: list[str], actions: list[str], action: str, enab
         if not action in past_actions:
             actions.append(action + "_start")
     elif action in past_actions:
-        actions.append(action + "_end")
+        actions.append(action + "_stop")
 
 '''
 The controls handling system:
@@ -53,10 +57,12 @@ def update_controls_system(group: EntityGroup):
 
     mouse_pos = pygame.mouse.get_pos()
     controls.mouse_position = Vector2(mouse_pos)
-    camera = group.query_singleton('camera', 'motion')
-    motion = camera.motion
-    screen_size = Vector2(camera.camera.surface.get_size())
+    camera_entity = group.query_singleton('camera', 'motion')
+    camera: CameraComponent = camera_entity.camera
+    motion: MotionComponent = camera_entity.motion
+    screen_size = Vector2(camera_entity.camera.surface.get_size())
     controls.mouse_camera_position = mouse_pos + motion.position - screen_size / 2
+    controls.mouse_grid_position = round_vector(controls.mouse_camera_position / camera.scale) + motion.position
 
     controls.direction = Vector2(
         int(keys[pygame.K_d]) - int(keys[pygame.K_a]),

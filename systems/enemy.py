@@ -48,16 +48,18 @@ a random plane to move on.
 def move_towards_player(p_pos: Vector2, e_pos: Vector2):
 
     delta = p_pos - e_pos
-    print(delta)
+
+    if not delta:
+        return delta
     
     velocity_x = Vector2(copysign(1.0, delta.x), 0)
     velocity_y = Vector2(0, copysign(1.0, delta.y))
 
     # If neither are in plane with player, choose random one
-    if (delta.x != 0 and delta.y != 0):
+    if delta.x != 0 and delta.y != 0:
         return choice([velocity_x, velocity_y])
 
-    if (delta.x != 0):
+    if delta.x != 0:
         return velocity_x
     else:
         return velocity_y

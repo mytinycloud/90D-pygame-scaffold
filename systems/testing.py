@@ -5,6 +5,7 @@ from .turn import TurnComponent
 from .player import PlayerComponent
 
 from .enemy import create_enemy
+from .effect import create_effect
 
 import random
 '''
@@ -19,10 +20,8 @@ def testing_system(group: EntityGroup):
 Mount the testing system any testing init
 '''
 def mount_testing_system(group: EntityGroup):
-
-    # Create 4 enemies at random locations for testing.
-    for i in range(2):
-        position = (random.choice(range(-10,10)),random.choice(range(-10,10)))
-        group.add(create_enemy(position))
-
+    group.add(create_enemy((8,5)))
+    group.add(create_effect("wave", Vector2(2,3), Vector2(1,0)))
+    group.add(create_effect("fire", Vector2(3,10)))
+    group.add(create_effect("growth", Vector2(9,5)))
     group.mount_system(testing_system)

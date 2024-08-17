@@ -47,6 +47,9 @@ def player_update_system(group: EntityGroup):
         player.motion.velocity = dir_command
         t.waiting = False
 
+    if "skip_start" in controls.actions:
+        t.waiting = False
+
 
 
 '''

@@ -30,3 +30,22 @@ Compute the determinant of two vectors
 '''
 def determinant(a: Vector2, b: Vector2) -> float:
     return (a.x * b.y) - (a.y * b.x)
+
+
+'''
+Clamps a vector
+'''
+def clamp_vector(v: Vector2, min: Vector2, max: Vector2) -> Vector2:
+    x,y = v.x,v.y
+    if x < min.x:
+        x = min.x
+    elif x > max.x:
+        x = max.x
+    if y < min.y:
+        y = min.y
+    elif y > max.y:
+        y = max.y
+    return Vector2(x, y)
+
+def round_vector(v: Vector2) -> Vector2:
+    return Vector2(round(v.x), round(v.y))
