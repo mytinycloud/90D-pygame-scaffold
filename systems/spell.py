@@ -5,6 +5,7 @@ from systems import tilemap
 from systems.controls import ControlComponent
 from systems.effect import EffectComponent, create_effect
 from systems.motion import MotionComponent
+from systems.turn import TurnComponent
 from systems.ui import UIComponent
 from systems.utils import clamp_vector
 
@@ -38,6 +39,10 @@ def spell_cast_system(group: EntityGroup):
     controls: ControlComponent = group.query_singleton('controls').controls
     selected_spell_entity: SelectedSpellComponent = group.query_singleton('selected_spell')
     selected_spell: SelectedSpellComponent = selected_spell_entity.selected_spell
+    turn: TurnComponent = group.query_singleton('turn').turn
+
+    if not turn.waiting:
+        return
 
     if "mouse_0_start" in controls.actions:
         selected_spell.spell_casting_start = controls.mouse_grid_position
@@ -48,19 +53,24 @@ def spell_cast_system(group: EntityGroup):
                 effect_direction = clamp_vector(controls.mouse_grid_position - selected_spell.spell_casting_start, Vector2(-1,-1), Vector2(1,1))
                 effect_entity = create_effect(spell.effect, selected_spell.spell_casting_start, effect_direction)
                 group.add(effect_entity)
+                turn.waiting = False
                 break
         selected_spell.spell_casting_start = None
 
 def mount_spell_system(group: EntityGroup):
-    spell_entity = Entity("Water wave")
-    spell_entity.spell = SpellComponent(select_action="select_spell_1", effect="wave")
+    water_wave = Entity("Water wave")
+    water_wave.spell = SpellComponent(select_action="select_spell_1", effect="wave")
+    plant_growth = Entity("Plant growth")
+    plant_growth.spell = SpellComponent(select_action="select_spell_2", effect="growth")
+    spark = Entity("Spark")
+    spark.spell = SpellComponent(select_action="select_spell_3", effect="fire")
 
     selected_spell_entity = Entity("selected_spell")
     selected_spell_entity.selected_spell = SelectedSpellComponent()
     selected_spell_entity.ui = UIComponent(text="")
     selected_spell_entity.motion = MotionComponent(position=Vector2(50, 50))
 
-    group.add(spell_entity)
+    group.add_all(water_wave, plant_growth, spark)
     group.add(selected_spell_entity)
 
     group.mount_system(spell_select_system)

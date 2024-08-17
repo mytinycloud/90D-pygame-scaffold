@@ -60,7 +60,7 @@ class TilemapComponent():
     
     def set_tile(self, coord: Union[Vector2, tuple[int, int]], tile: Tile):
         if not self.bounds.contains((0,0), coord):
-            pass
+            return
 
         self.map[int(coord[1])][int(coord[0])] = tile
 
