@@ -1,8 +1,10 @@
 from engine.ecs import Entity, EntityGroup, enumerate_component
+from pygame import Vector2
 
 from .sprites import SpriteComponent
 from .motion import MotionComponent
-from .collisions import HitboxComponent
+from .controls import ControlComponent
+from . import turn
 
 
 '''
@@ -13,20 +15,38 @@ class PlayerComponent():
     pass
 
 
+def get_direction_command(actions: list[str]) -> Vector2 | None:
+    mapping = {
+        "up_start": Vector2(0,-1),
+        "down_start": Vector2(0,1),
+        "left_start": Vector2(-1,0),
+        "right_start": Vector2(1,0),
+    }
+    for key in mapping:
+        if key in actions:
+            return mapping[key]
+    return None
+
 '''
 The player update system:
 Update the players velocity based on the controls
 '''
 def player_update_system(group: EntityGroup):
 
-    camera = group.query_singleton('camera').camera
-    if not camera.is_locked:
+    t: turn.TurnComponent = group.query_singleton("turn").turn
+
+    if t.state != turn.TURN_PLAYER:
+        # Nothing we can do
         return
 
-    controls = group.query_singleton('controls').controls
+    controls: ControlComponent = group.query_singleton('controls').controls
+    player = group.query_singleton('player', 'motion')
 
-    for player in group.query('player'):
-        player.motion.velocity = controls.direction * (200 if "sprint" in controls.actions else 100)
+    dir_command = get_direction_command(controls.actions)
+    if dir_command:
+        player.motion.velocity = dir_command
+        t.waiting = False
+
 
 
 '''
@@ -35,10 +55,8 @@ Adds the player character, and mounts systems for updating the player with the c
 def mount_player_system(group: EntityGroup):
     player = Entity("player")
     player.player = PlayerComponent()
-    player.motion = MotionComponent(is_movable = True)
+    player.motion = MotionComponent()
     player.sprite = SpriteComponent.from_box((32, 32), (255,0,0))
-    player.hitbox = HitboxComponent.from_box(32, 1)
-    player.hitbox.target_mask = 1
     group.add(player)
 
     group.mount_system(player_update_system)

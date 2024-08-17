@@ -44,13 +44,15 @@ class SpriteComponent():
         return SpriteComponent(surface=surface)
 
 
+TILE_SCALE = 32
+
 '''
 A component that represents a camera
 '''
 @enumerate_component("camera")
 class CameraComponent():
     surface: Surface
-    is_locked: bool = True
+    scale: float = TILE_SCALE
 
 
 '''
@@ -60,20 +62,25 @@ Use the camera position to draw all entities with a sprite at their relative loc
 def draw_sprite_system(group: EntityGroup):
 
     camera = group.query_singleton('camera', 'motion')
-    camera_motion: MotionComponent = camera.motion
     surface: Surface = camera.camera.surface
-    origin = Vector2(surface.get_size()) / 2 - camera_motion.position
+    origin = Vector2(surface.get_size()) / 2 - camera.motion.position
+
+    scale = camera.camera.scale
+
+    sprite_scale = Vector2(camera.camera.scale / TILE_SCALE)
 
     for e in group.query('sprite', 'motion'):
-        size = Vector2(e.sprite.surface.get_size())
+        
         motion: MotionComponent = e.motion
         sprite: SpriteComponent = e.sprite
-        sprite_pos = motion.position + origin - size / 2
-        sprite_rot = motion.rotation
-        rotated_surface = pygame.transform.rotozoom(sprite.surface, sprite_rot, 1)
+        
+        size = Vector2(sprite.surface.get_size())
+        sprite_pos = motion.position * scale + origin - size / 2
+
+        scaled_sprite = pygame.transform.scale_by(sprite.surface, sprite_scale)
 
         # Note, we are ignoring any screen-space culling
-        surface.blit(rotated_surface, sprite_pos)
+        surface.blit(scaled_sprite, sprite_pos)
 
 
 '''
@@ -82,7 +89,7 @@ Mounts the sprite drawing system, and adds a camera component for the viewport
 def mount_sprite_system(group: EntityGroup, target: Surface):
     camera = Entity("camera")
     camera.camera = CameraComponent(surface=target)
-    camera.motion = MotionComponent(is_movable=True)
+    camera.motion = MotionComponent()
     group.add(camera)
 
     group.mount_system(draw_sprite_system)
