@@ -7,6 +7,10 @@ from .controls import ControlComponent
 from . import turn
 
 
+EFFECT_WAVE = 0
+EFFECT_FILL = 1
+
+
 '''
 Component class to store effect information
 '''
@@ -14,7 +18,7 @@ Component class to store effect information
 class EffectComponent():
     direction: Vector2 = factory(Vector2)
     energy: int = 1
-    is_wave: bool = True
+    type: bool = EFFECT_WAVE
 
 
 
@@ -36,7 +40,7 @@ def effect_update_system(group: EntityGroup):
         
         # Propagation
         if effect.energy > 1:
-            if effect.is_wave:
+            if effect.type == EFFECT_WAVE:
                 # all energy is transferred to the new entity
                 energy_transfer = effect.energy - 1
                 group.add(propagate_entity(e, motion.position + effect.direction, energy_transfer))
