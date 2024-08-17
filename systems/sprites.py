@@ -50,7 +50,6 @@ A component that represents a camera
 @enumerate_component("camera")
 class CameraComponent():
     surface: Surface
-    is_locked: bool = True
 
 
 '''
