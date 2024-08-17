@@ -63,7 +63,7 @@ def mount_spell_system(group: EntityGroup):
     plant_growth = Entity("Plant growth")
     plant_growth.spell = SpellComponent(select_action="select_spell_2", effect="growth")
     spark = Entity("Spark")
-    spark.spell = SpellComponent(select_action="select_spell_3", effect="fire")
+    spark.spell = SpellComponent(select_action="select_spell_3", effect="spark")
 
     selected_spell_entity = Entity("selected_spell")
     selected_spell_entity.selected_spell = SelectedSpellComponent()
