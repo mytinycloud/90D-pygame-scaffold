@@ -5,7 +5,7 @@ from systems.tilemap import TilemapComponent, parse_tile_map
 
 
 def init(group: EntityGroup, window: Window):
-    map = parse_tile_map('assets/map.png')
+    map = parse_tile_map('map.png')
 
     tilemap = Entity("tilemap")
     tilemap.tilemap = TilemapComponent.from_map(map)
