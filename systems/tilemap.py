@@ -1,5 +1,5 @@
-from typing import TypeVar
-from pygame import Color, image
+from typing import Union
+from pygame import Color, Vector2, image, Rect
 from engine.ecs import enumerate_component, factory
 
 TILE_EARTH = 0
@@ -14,7 +14,9 @@ MU = TILE_MUD
 PL = TILE_PLANT
 EM = TILE_EMBER
 
-Tilemap = list[list[int]]
+type Tilemap = list[list[int]]
+# We may want to make this a literal and/or use an enum
+type Tile = int
 
 def rgb_key(rgba: tuple[int, int, int, int]):
     key = ''
@@ -36,6 +38,7 @@ Component that stores a tilemap
 '''
 @enumerate_component("tilemap")
 class TilemapComponent():
+    bounds: Rect
     map: list[list[int]] = factory([
         [EA,EA,EA,EA,EA,EA,EA,EA,EA,EA],
         [EA,WA,WA,WA,EA,EA,EA,EA,EA,EA],
@@ -48,6 +51,26 @@ class TilemapComponent():
         [EA,EA,EA,EA,EA,EA,EA,EA,EA,EA],
         [EA,EA,EA,EA,EA,EA,EA,EA,EA,EA],
     ])
+
+    def get_tile(self, coord: Union[Vector2, tuple[int, int]]):
+        if not self.bounds.contains((0,0), coord):
+            return None
+        
+        return self.map[int(coord[0])][int(coord[1])]
+    
+    def set_tile(self, coord: Union[Vector2, tuple[int, int]], tile: Tile):
+        if not self.bounds.contains((0,0), coord):
+            pass
+
+        self.map[int(coord[0])][int(coord[1])] = tile
+
+    @staticmethod
+    def from_map(map: Tilemap):
+        return TilemapComponent(
+            map = map,
+            bounds = Rect(0, 0, len(map), len(map[0]))
+        )
+
 
 def parse_tile_map(image_path: str) -> Tilemap:
     map_surface = image.load(image_path)
