@@ -15,6 +15,7 @@ A component that contains sprite information
 @enumerate_component("sprite")
 class SpriteComponent():
     surface: Surface
+    z: float = 0
 
     '''
     Creates a sprite from a resource file
@@ -69,7 +70,7 @@ def draw_sprite_system(group: EntityGroup):
 
     sprite_scale = Vector2(camera.camera.scale / TILE_SCALE)
 
-    for e in group.query('sprite', 'motion'):
+    for e in sorted(group.query('sprite', 'motion'), key = lambda e: e.sprite.z):
         
         motion: MotionComponent = e.motion
         sprite: SpriteComponent = e.sprite
