@@ -18,7 +18,7 @@ def testing_system(group: EntityGroup):
 Mount the testing system any testing init
 '''
 def mount_testing_system(group: EntityGroup):
-    enemy1 = create_enemy((-10,20))
+    enemy1 = create_enemy((-5,5))
     # enemy2 = create_enemy((40,-60))
     # enemy3 = create_enemy((-50,-70))
     # enemy4 = create_enemy((70,70))
