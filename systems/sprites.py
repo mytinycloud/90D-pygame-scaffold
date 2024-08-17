@@ -65,16 +65,22 @@ def draw_sprite_system(group: EntityGroup):
     surface: Surface = camera.camera.surface
     origin = Vector2(surface.get_size()) / 2 - camera.motion.position
 
+    scale = camera.camera.scale
+
+    sprite_scale = Vector2(camera.camera.scale / TILE_SCALE)
+
     for e in group.query('sprite', 'motion'):
         
         motion: MotionComponent = e.motion
         sprite: SpriteComponent = e.sprite
         
         size = Vector2(sprite.surface.get_size())
-        sprite_pos = motion.position * camera.camera.scale + origin - size / 2
+        sprite_pos = motion.position * scale + origin - size / 2
+
+        scaled_sprite = pygame.transform.scale_by(sprite.surface, sprite_scale)
 
         # Note, we are ignoring any screen-space culling
-        surface.blit(sprite.surface, sprite_pos)
+        surface.blit(scaled_sprite, sprite_pos)
 
 
 '''
