@@ -1,7 +1,10 @@
 from engine.ecs import Entity, EntityGroup, enumerate_component
+from pygame import Vector2
 
 from .sprites import SpriteComponent
 from .motion import MotionComponent
+from .controls import ControlComponent
+from . import turn
 
 
 '''
@@ -12,17 +15,38 @@ class PlayerComponent():
     pass
 
 
+def get_direction_command(actions: list[str]) -> Vector2 | None:
+    mapping = {
+        "up_start": Vector2(0,-1),
+        "down_start": Vector2(0,1),
+        "left_start": Vector2(-1,0),
+        "right_start": Vector2(1,0),
+    }
+    for key in mapping:
+        if key in actions:
+            return mapping[key]
+    return None
+
 '''
 The player update system:
 Update the players velocity based on the controls
 '''
 def player_update_system(group: EntityGroup):
 
-    camera = group.query_singleton('camera').camera
-    if not camera.is_locked:
+    t: turn.TurnComponent = group.query_singleton("turn").turn
+
+    if t.state != turn.TURN_PLAYER:
+        # Nothing we can do
         return
 
-    controls = group.query_singleton('controls').controls
+    controls: ControlComponent = group.query_singleton('controls').controls
+    player = group.query_singleton('player', 'motion')
+
+    dir_command = get_direction_command(controls.actions)
+    if dir_command:
+        player.motion.velocity = dir_command
+        t.waiting = False
+
 
 
 '''
