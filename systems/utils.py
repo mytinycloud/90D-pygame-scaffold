@@ -46,3 +46,6 @@ def clamp_vector(v: Vector2, min: Vector2, max: Vector2) -> Vector2:
     elif y > max.y:
         y = max.y
     return Vector2(x, y)
+
+def round_vector(v: Vector2) -> Vector2:
+    return Vector2(round(v.x), round(v.y))
