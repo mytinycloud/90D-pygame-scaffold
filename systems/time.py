@@ -15,7 +15,6 @@ class TimeComponent():
 
 
 
-
 '''
 Moves the game time information into the time entity
 '''
