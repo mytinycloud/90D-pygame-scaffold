@@ -14,6 +14,14 @@ key_mapping = {
     pygame.K_d: ["right"],
     pygame.K_SPACE: ["skip"],
     pygame.K_1: ["select_spell_1"],
+    pygame.K_2: ["select_spell_2"],
+    pygame.K_3: ["select_spell_3"],
+    pygame.K_4: ["select_spell_4"],
+    pygame.K_5: ["select_spell_5"],
+    pygame.K_6: ["select_spell_6"],
+    pygame.K_7: ["select_spell_7"],
+    pygame.K_8: ["select_spell_8"],
+    pygame.K_9: ["select_spell_9"],
 }
 
 '''
