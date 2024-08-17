@@ -6,3 +6,4 @@ from . import controls
 from . import testing
 from . import time
 from . import turn
+from . import effect
