@@ -65,12 +65,14 @@ def draw_sprite_system(group: EntityGroup):
     origin = Vector2(surface.get_size()) / 2 - camera_motion.position
 
     for e in group.query('sprite', 'motion'):
-        size = Vector2(e.sprite.surface.get_size())
+        
         motion: MotionComponent = e.motion
         sprite: SpriteComponent = e.sprite
-        sprite_pos = motion.position + origin - size / 2
+        
         sprite_rot = motion.rotation
         rotated_surface = pygame.transform.rotozoom(sprite.surface, sprite_rot, 1)
+        size = Vector2(rotated_surface.get_size())
+        sprite_pos = motion.position + origin - size / 2
 
         # Note, we are ignoring any screen-space culling
         surface.blit(rotated_surface, sprite_pos)

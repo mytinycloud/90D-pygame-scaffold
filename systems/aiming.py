@@ -12,7 +12,7 @@ def aiming_system(group: EntityGroup):
     player_motion: MotionComponent = group.query_singleton('player', 'motion').motion
     controls: ControlComponent = group.query_singleton('controls').controls
 
-    if 'mouse_3' in controls.actions:
+    if 'mouse_2' in controls.actions:
         player_motion.rotation = (controls.mouse_camera_position - player_motion.position).angle_to(Vector2(1,0))
     else:
         player_motion.rotation = 0
