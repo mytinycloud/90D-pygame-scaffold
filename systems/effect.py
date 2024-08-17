@@ -8,6 +8,7 @@ from .controls import ControlComponent
 from .tilemap import TilemapComponent
 from . import turn
 from . import tilemap
+from . import utils
 
 
 EFFECT_WAVE = 0
@@ -23,10 +24,13 @@ class EffectComponent():
     energy: int = 1
     type: int = EFFECT_WAVE
     harvests: dict[int,tuple[int,int]] = factory(dict)
+    propagates: dict[int,tuple] = factory(dict)
 
     def add_harvest(self, tile_in: int, tile_out: int, energy: int):
         self.harvests[tile_in] = (tile_out, energy)
 
+    def add_propagation(self, tile_in: int):
+        self.propagates[tile_in] = ()
 
 
 '''
@@ -46,12 +50,14 @@ def effect_update_system(group: EntityGroup):
         
         effect: EffectComponent = e.effect
         motion: MotionComponent = e.motion
+        pos = motion.position
+        dir = effect.direction
 
         # Harvesting
-        tile = map.get_tile(motion.position)
+        tile = map.get_tile(pos)
         if tile in effect.harvests:
             new_tile, energy_gain = effect.harvests[tile]
-            map.set_tile(motion.position, new_tile)
+            map.set_tile(pos, new_tile)
             effect.energy += energy_gain
         
         # Propagation
@@ -59,8 +65,17 @@ def effect_update_system(group: EntityGroup):
             if effect.type == EFFECT_WAVE:
                 # Waves transfer all energy forward.
                 energy_transfer = effect.energy - 1
-                group.add(propagate_entity(e, motion.position + effect.direction, energy_transfer))
+                group.add(propagate_entity(e, pos + dir, energy_transfer))
                 effect.energy -= energy_transfer
+
+                adjacents = [
+                    pos + utils.rotate_vector_cw(dir),
+                    pos + utils.rotate_vector_ccw(dir)
+                ]
+                for coord in adjacents:
+                    tile = map.get_tile(coord)
+                    if tile in effect.propagates:
+                        group.add(propagate_entity(e, coord, 0))
 
         # decay
         effect.energy -= 1
@@ -96,6 +111,7 @@ def create_effect_templates():
     e.effect = EffectComponent()
     e.effect.add_harvest(tilemap.TILE_WATER, tilemap.TILE_MUD, 3)
     e.effect.add_harvest(tilemap.TILE_EARTH, tilemap.TILE_MUD, 0)
+    e.effect.add_propagation(tilemap.TILE_WATER)
     effect_dict["wave"] = e
 
     return effect_dict
