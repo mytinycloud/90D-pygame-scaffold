@@ -1,6 +1,7 @@
 from engine.ecs import Entity, EntityGroup, enumerate_component, factory
 from pygame import Vector2
 from dataclasses import dataclass
+import random
 
 from .sprites import SpriteComponent
 from .motion import MotionComponent
@@ -11,8 +12,8 @@ from . import tilemap
 from . import utils
 
 
-EFFECT_WAVE = 0
-EFFECT_FILL = 1
+SHAPE_WAVE = 0
+SHAPE_FILL = 1
 
 
 '''
@@ -22,16 +23,35 @@ Component class to store effect information
 class EffectComponent():
     direction: Vector2 = factory(Vector2)
     energy: int = 1
-    type: int = EFFECT_WAVE
+    shape: int = SHAPE_WAVE
     harvests: dict[int,tuple[int,int]] = factory(dict)
-    propagates: dict[int,tuple] = factory(dict)
+    propagates: dict[int,tuple[int, float]] = factory(dict)
 
     def add_harvest(self, tile_in: int, tile_out: int, energy: int):
         self.harvests[tile_in] = (tile_out, energy)
 
-    def add_propagation(self, tile_in: int):
-        self.propagates[tile_in] = ()
+    def add_propagation(self, tile_in: int, energy_tranfer: int = 0, probability: float = 1.0):
+        self.propagates[tile_in] = (energy_tranfer, probability)
 
+'''
+Return the normal vectors for a given direction
+'''
+def vector_normals(pos: Vector2, diretion: Vector2) -> list[Vector2]:
+    return (
+        pos + utils.rotate_vector_cw(diretion),
+        pos + utils.rotate_vector_ccw(diretion)
+    )
+
+'''
+Return the 4 cardinal directions
+'''
+def vector_cardinals(pos: Vector2) -> list[Vector2]:
+    return (
+        pos + Vector2(1,0),
+        pos + Vector2(0,1),
+        pos + Vector2(-1,0),
+        pos + Vector2(0,-1)
+    )
 
 '''
 The effect update system:
@@ -62,20 +82,28 @@ def effect_update_system(group: EntityGroup):
         
         # Propagation
         if effect.energy > 1:
-            if effect.type == EFFECT_WAVE:
+
+            propagation_coords = []
+
+            if effect.shape == SHAPE_WAVE:
                 # Waves transfer all energy forward.
                 energy_transfer = effect.energy - 1
                 group.add(propagate_entity(e, pos + dir, energy_transfer))
                 effect.energy -= energy_transfer
+                propagation_coords = vector_normals(pos, dir)
 
-                adjacents = [
-                    pos + utils.rotate_vector_cw(dir),
-                    pos + utils.rotate_vector_ccw(dir)
-                ]
-                for coord in adjacents:
-                    tile = map.get_tile(coord)
-                    if tile in effect.propagates:
-                        group.add(propagate_entity(e, coord, 0))
+            if effect.shape == SHAPE_FILL:
+                # Goes out in all directions
+                propagation_coords = vector_cardinals(pos)
+
+            for coord in propagation_coords:
+                tile = map.get_tile(coord)
+                if tile in effect.propagates:
+                    energy_transfer,probability = effect.propagates[tile]
+                    if random.random() < probability:
+                        energy_transfer = max(0, min(energy_transfer, effect.energy - 1))
+                        effect.energy -= energy_transfer
+                        group.add(propagate_entity(e, coord, energy_transfer))
 
         # decay
         effect.energy -= 1
@@ -102,17 +130,32 @@ def create_effect_templates():
     e = Entity("effect-fire")
     e.motion = MotionComponent()
     e.sprite = SpriteComponent.from_circle(16, (255,0,0))
-    e.effect = EffectComponent()
+    e.effect = EffectComponent(shape=SHAPE_FILL)
+    e.effect.add_harvest(tilemap.TILE_PLANT, tilemap.TILE_EMBER, 3)
+    e.effect.add_harvest(tilemap.TILE_WATER, tilemap.TILE_MUD, -3)
+    e.effect.add_harvest(tilemap.TILE_MUD, tilemap.TILE_EARTH, -1)
+    e.effect.add_propagation(tilemap.TILE_PLANT)
     effect_dict["fire"] = e
 
     e = Entity("effect-wave")
     e.motion = MotionComponent()
     e.sprite = SpriteComponent.from_circle(16, (0,0,255))
-    e.effect = EffectComponent()
+    e.effect = EffectComponent(shape=SHAPE_WAVE)
     e.effect.add_harvest(tilemap.TILE_WATER, tilemap.TILE_MUD, 3)
     e.effect.add_harvest(tilemap.TILE_EARTH, tilemap.TILE_MUD, 0)
     e.effect.add_propagation(tilemap.TILE_WATER)
     effect_dict["wave"] = e
+
+    e = Entity("effect-growth")
+    e.motion = MotionComponent()
+    e.sprite = SpriteComponent.from_circle(16, (0,255,0))
+    e.effect = EffectComponent(shape=SHAPE_FILL)
+    e.effect.add_harvest(tilemap.TILE_MUD, tilemap.TILE_PLANT, 10)
+    e.effect.add_harvest(tilemap.TILE_EARTH, tilemap.TILE_PLANT, 0)
+    e.effect.add_propagation(tilemap.TILE_MUD, 5, 0.25)
+    e.effect.add_propagation(tilemap.TILE_EARTH, 5, 0.25)
+    effect_dict["growth"] = e
+    
 
     return effect_dict
 
