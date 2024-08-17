@@ -20,6 +20,7 @@ systems.spell.mount_spell_system(group)
 systems.effect.mount_effect_system(group)
 systems.motion.mount_motion_system(group)
 systems.testing.mount_testing_system(group)
+systems.ui.mount_ui_system(group)
 systems.sprites.mount_sprite_system(group, window.surface)
 
 # Game Initialization
