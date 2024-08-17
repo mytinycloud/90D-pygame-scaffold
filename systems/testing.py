@@ -6,6 +6,7 @@ from .player import PlayerComponent
 
 from .enemy import create_enemy
 
+import random
 '''
 Just a place to add some in-development / testing code
 '''
@@ -18,12 +19,10 @@ def testing_system(group: EntityGroup):
 Mount the testing system any testing init
 '''
 def mount_testing_system(group: EntityGroup):
-    enemy1 = create_enemy((-5,5))
-    # enemy2 = create_enemy((40,-60))
-    # enemy3 = create_enemy((-50,-70))
-    # enemy4 = create_enemy((70,70))
-    group.add(enemy1)
-    # group.add(enemy2)
-    # group.add(enemy3)
-    # group.add(enemy4)
+
+    # Create 4 enemies at random locations for testing.
+    for i in range(2):
+        position = (random.choice(range(-10,10)),random.choice(range(-10,10)))
+        group.add(create_enemy(position))
+
     group.mount_system(testing_system)

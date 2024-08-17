@@ -4,6 +4,7 @@ from pygame import Vector2
 from .sprites import SpriteComponent
 from .motion import MotionComponent
 from .controls import ControlComponent
+from .health import HealthComponent
 from . import turn
 
 
@@ -13,7 +14,6 @@ Component class to store player specific information
 @enumerate_component("player")
 class PlayerComponent():
     pass
-
 
 def get_direction_command(actions: list[str]) -> Vector2 | None:
     mapping = {
@@ -57,6 +57,7 @@ def mount_player_system(group: EntityGroup):
     player.player = PlayerComponent()
     player.motion = MotionComponent()
     player.sprite = SpriteComponent.from_box((32, 32), (255,0,0))
+    player.health = HealthComponent(health = 100)
     group.add(player)
 
     group.mount_system(player_update_system)
