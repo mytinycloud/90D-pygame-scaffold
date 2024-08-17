@@ -53,22 +53,25 @@ class TilemapComponent():
     map: list[list[int]]
 
     def get_tile(self, coord: Union[Vector2, tuple[int, int]]):
-        if not self.bounds.contains((0,0), coord):
+        if not self.contains(coord):
             return None
         
         return self.map[int(coord[1])][int(coord[0])]
     
     def set_tile(self, coord: Union[Vector2, tuple[int, int]], tile: Tile):
-        if not self.bounds.contains((0,0), coord):
+        if not self.contains(coord):
             return
 
         self.map[int(coord[1])][int(coord[0])] = tile
+
+    def contains(self, coord: Union[Vector2, tuple[int, int]]):
+        return self.bounds.contains(coord, (0, 0))
 
     @staticmethod
     def from_map(map: Tilemap):
         return TilemapComponent(
             map = map,
-            bounds = Rect(0, 0, len(map)-1, len(map[0])-1)
+            bounds = Rect(0, 0, len(map[0]), len(map))
         )
 
 
