@@ -1,5 +1,6 @@
 from typing import Union
 from pygame import Color, Vector2, image, Rect
+from engine.assets import AssetPipeline
 from engine.ecs import enumerate_component, factory
 
 TILE_EARTH = 0
@@ -33,24 +34,23 @@ TILE_COLOR_MAP = {
     rgb_key(Color('#e04a09')): TILE_EMBER
 }
 
+asset_pipeline = AssetPipeline.get_instance()
+
+TILE_SPRITES = {
+    TILE_EARTH: asset_pipeline.get_image('tiles/earth.png'),
+    TILE_WATER: asset_pipeline.get_image('tiles/water.png'),
+    TILE_MUD: asset_pipeline.get_image('tiles/mud.png'),
+    TILE_PLANT: asset_pipeline.get_image('tiles/plant.png'),
+    TILE_EMBER: asset_pipeline.get_image('tiles/ember.png')
+}
+
 '''
 Component that stores a tilemap
 '''
 @enumerate_component("tilemap")
 class TilemapComponent():
     bounds: Rect
-    map: list[list[int]] = factory([
-        [EA,EA,EA,EA,EA,EA,EA,EA,EA,EA],
-        [EA,WA,WA,WA,EA,EA,EA,EA,EA,EA],
-        [EA,EA,EA,EA,EA,EA,EA,EA,EA,EA],
-        [EA,EA,EA,EA,EA,EA,EA,EA,EA,EA],
-        [EA,EA,EA,MU,MU,MU,EA,EA,EA,EA],
-        [EA,EA,EA,MU,MU,EA,EA,EA,EA,EA],
-        [EA,EA,EA,EA,EA,EA,EM,EM,EA,EA],
-        [EA,PL,PL,EA,EA,EA,EM,EA,EA,EA],
-        [EA,EA,EA,EA,EA,EA,EA,EA,EA,EA],
-        [EA,EA,EA,EA,EA,EA,EA,EA,EA,EA],
-    ])
+    map: list[list[int]]
 
     def get_tile(self, coord: Union[Vector2, tuple[int, int]]):
         if not self.bounds.contains((0,0), coord):
@@ -73,7 +73,7 @@ class TilemapComponent():
 
 
 def parse_tile_map(image_path: str) -> Tilemap:
-    map_surface = image.load(image_path)
+    map_surface = AssetPipeline.get_instance().get_image(image_path)
     map: Tilemap = list()
     for y in range(map_surface.get_height()):
         map.append(list())
