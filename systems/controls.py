@@ -8,9 +8,7 @@ key_mapping = {
     pygame.K_a: ["left"],
     pygame.K_s: ["down"],
     pygame.K_d: ["right"],
-    pygame.K_LSHIFT: ["sprint"],
-    pygame.K_SPACE: ["spawn"],
-    pygame.K_l: ["camera_lock"],
+    pygame.K_SPACE: ["skip"],
 }
 
 '''
