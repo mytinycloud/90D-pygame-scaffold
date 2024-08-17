@@ -19,6 +19,6 @@ def testing_system(group: EntityGroup):
 Mount the testing system any testing init
 '''
 def mount_testing_system(group: EntityGroup):
-    enemy1 = create_enemy((-5,5))
-    group.add(enemy1)
+    group.add(create_enemy((-5,5)))
+    group.add(create_effect("wave", Vector2(2,3), Vector2(1,0)))
     group.mount_system(testing_system)
