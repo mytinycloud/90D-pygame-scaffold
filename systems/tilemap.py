@@ -1,7 +1,3 @@
-
-'''
-A component that represents a camera
-'''
 from engine.ecs import enumerate_component
 
 TILE_EARTH = 0
@@ -16,7 +12,9 @@ MU = TILE_MUD
 PL = TILE_PLANT
 EM = TILE_EMBER
 
-
+'''
+Component that stores a tilemap
+'''
 @enumerate_component("tilemap")
 class TilemapComponent():
     map = [
