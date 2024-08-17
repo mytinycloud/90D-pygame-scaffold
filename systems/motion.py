@@ -2,6 +2,8 @@ from engine.ecs import EntityGroup, enumerate_component, factory
 from pygame import Vector2
 
 from .turn import TurnComponent
+from .tilemap import TilemapComponent
+from . import utils
 
 '''
 Component containing a position, velocity, ect
@@ -20,12 +22,16 @@ def motion_update_system(group: EntityGroup):
     t: TurnComponent = group.query_singleton('turn').turn
     if t.waiting:
         return
+    
+    tilemap: TilemapComponent = group.query_singleton("tilemap").tilemap
+    bounds_min = Vector2(tilemap.bounds.topleft)
+    bounds_max = Vector2(tilemap.bounds.bottomright)
 
     # Update the position of all entities with a velocity
     for e in group.query('motion'):
         motion: MotionComponent = e.motion
         if motion.velocity:
-            motion.position += motion.velocity
+            motion.position = utils.clamp_vector( motion.position + motion.velocity, bounds_min, bounds_max)
             motion.velocity = Vector2(0)
 
 '''

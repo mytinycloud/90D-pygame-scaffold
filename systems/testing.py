@@ -5,6 +5,7 @@ from .turn import TurnComponent
 from .player import PlayerComponent
 
 from .enemy import create_enemy
+from .effect import create_effect
 
 '''
 Just a place to add some in-development / testing code
@@ -18,12 +19,6 @@ def testing_system(group: EntityGroup):
 Mount the testing system any testing init
 '''
 def mount_testing_system(group: EntityGroup):
-    enemy1 = create_enemy((-5,5))
-    # enemy2 = create_enemy((40,-60))
-    # enemy3 = create_enemy((-50,-70))
-    # enemy4 = create_enemy((70,70))
-    group.add(enemy1)
-    # group.add(enemy2)
-    # group.add(enemy3)
-    # group.add(enemy4)
+    group.add(create_enemy((-5,5)))
+    group.add(create_effect("wave", Vector2(2,3), Vector2(1,0)))
     group.mount_system(testing_system)

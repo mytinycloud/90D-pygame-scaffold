@@ -75,9 +75,8 @@ def draw_sprite_system(group: EntityGroup):
     camera = group.query_singleton('camera', 'motion')
     tilemap: TilemapComponent = group.query_singleton('tilemap').tilemap
     surface: Surface = camera.camera.surface
-    origin = Vector2(surface.get_size()) / 2 - camera.motion.position
-
     scale = camera.camera.scale
+    origin = Vector2(surface.get_size()) / 2 - (camera.motion.position * scale)
     sprite_scale = Vector2(camera.camera.scale / TILE_SCALE)
 
     for y, row in enumerate(tilemap.map):
@@ -106,7 +105,7 @@ Mounts the sprite drawing system, and adds a camera component for the viewport
 def mount_sprite_system(group: EntityGroup, target: Surface):
     camera = Entity("camera")
     camera.camera = CameraComponent(surface=target)
-    camera.motion = MotionComponent()
+    camera.motion = MotionComponent(position=Vector2(8,8))
     group.add(camera)
 
     group.mount_system(draw_sprite_system)
