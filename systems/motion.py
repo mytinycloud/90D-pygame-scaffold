@@ -1,6 +1,8 @@
 from engine.ecs import EntityGroup, enumerate_component, factory
 from pygame import Vector2
 
+from .turn import TurnComponent
+
 '''
 Component containing a position, velocity, ect
 '''
@@ -15,10 +17,16 @@ Update any entities with motions components
 '''
 def motion_update_system(group: EntityGroup):
 
+    t: TurnComponent = group.query_singleton('turn').turn
+    if t.waiting:
+        return
+
     # Update the position of all entities with a velocity
     for e in group.query('motion'):
         motion: MotionComponent = e.motion
-        motion.position += motion.velocity
+        if motion.velocity:
+            motion.position += motion.velocity
+            motion.velocity = Vector2(0)
 
 '''
 Mounts systems for updating motion components
