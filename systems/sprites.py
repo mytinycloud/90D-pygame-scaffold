@@ -3,7 +3,9 @@ import os
 
 import pygame
 from pygame.surface import Surface
-from pygame import Vector2
+from pygame import Color, Vector2
+
+from systems.tilemap import TilemapComponent
 
 from .motion import MotionComponent
 
@@ -56,6 +58,14 @@ class CameraComponent():
     scale: float = TILE_SCALE
 
 
+TILE_COLORS = [
+    Color('#67584b'),
+    Color('#4772e5'),
+    Color('#5d330e'),
+    Color('#6ad127'),
+    Color('#e04a09')
+]
+
 '''
 The sprite drawings system:
 Use the camera position to draw all entities with a sprite at their relative location.
@@ -63,12 +73,18 @@ Use the camera position to draw all entities with a sprite at their relative loc
 def draw_sprite_system(group: EntityGroup):
 
     camera = group.query_singleton('camera', 'motion')
+    tilemap: TilemapComponent = group.query_singleton('tilemap').tilemap
     surface: Surface = camera.camera.surface
     origin = Vector2(surface.get_size()) / 2 - camera.motion.position
 
     scale = camera.camera.scale
-
     sprite_scale = Vector2(camera.camera.scale / TILE_SCALE)
+
+    for y, row in enumerate(tilemap.map):
+        for x, tile in enumerate(row):
+            tile_surface = Surface((TILE_SCALE, TILE_SCALE))
+            tile_surface.fill(TILE_COLORS[tile])
+            surface.blit(tile_surface, Vector2(x, y) * scale + origin - Vector2(TILE_SCALE) / 2)
 
     for e in sorted(group.query('sprite', 'motion'), key = lambda e: e.sprite.z):
         
