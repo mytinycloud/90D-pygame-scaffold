@@ -9,7 +9,7 @@ TURN_COMPLETE = 3
 
 
 '''
-Component class to store time information
+Component class to store turn information
 '''
 @enumerate_component("turn")
 class TurnComponent():
@@ -20,7 +20,7 @@ class TurnComponent():
 
 
 '''
-Moves the game time information into the time entity
+Update the time step
 '''
 def update_turn_system(group: EntityGroup):
     
@@ -36,7 +36,7 @@ def update_turn_system(group: EntityGroup):
 
 
 '''
-Mounts the components and systems for reading controls
+Mounts the component and systems for handling turn information
 '''
 def mount_turn_system(group: EntityGroup):
     e = Entity("turn")

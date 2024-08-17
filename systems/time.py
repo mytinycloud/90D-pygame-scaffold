@@ -30,7 +30,7 @@ def update_time_system(group: EntityGroup):
 
 
 '''
-Mounts the components and systems for reading controls
+Mounts the component and systems for providing game time
 '''
 def mount_time_system(group: EntityGroup, clock: Clock):
     e = Entity("time")
