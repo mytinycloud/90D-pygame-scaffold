@@ -9,12 +9,6 @@ TILE_MUD = 2
 TILE_PLANT = 3
 TILE_EMBER = 4
 
-EA = TILE_EARTH
-WA = TILE_WATER
-MU = TILE_MUD
-PL = TILE_PLANT
-EM = TILE_EMBER
-
 type Tilemap = list[list[int]]
 # We may want to make this a literal and/or use an enum
 type Tile = int

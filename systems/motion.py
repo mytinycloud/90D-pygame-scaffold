@@ -1,9 +1,17 @@
+from enum import Enum
 from engine.ecs import EntityGroup, enumerate_component, factory
 from pygame import Vector2
 
 from .turn import TurnComponent
 from .tilemap import TilemapComponent
 from . import utils
+
+
+class Direction:
+    UP = Vector2(0, -1)
+    DOWN = Vector2(0, 1)
+    LEFT = Vector2(-1, 0)
+    RIGHT = Vector2(1, 0)
 
 '''
 Component containing a position, velocity, ect
