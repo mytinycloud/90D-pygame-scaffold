@@ -68,9 +68,10 @@ def update_controls_system(group: EntityGroup):
     camera_entity = group.query_singleton('camera', 'motion')
     camera: CameraComponent = camera_entity.camera
     motion: MotionComponent = camera_entity.motion
-    screen_size = Vector2(camera_entity.camera.surface.get_size())
-    controls.mouse_camera_position = mouse_pos + motion.position - screen_size / 2
-    controls.mouse_grid_position = round_vector(controls.mouse_camera_position / camera.scale) + motion.position
+
+    offset, scale = camera.get_screenspace_transform(motion.position)
+    controls.mouse_camera_position = (mouse_pos - offset) / scale
+    controls.mouse_grid_position = round_vector(controls.mouse_camera_position)
 
     controls.direction = Vector2(
         int(keys[pygame.K_d]) - int(keys[pygame.K_a]),

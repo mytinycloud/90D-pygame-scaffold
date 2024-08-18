@@ -56,6 +56,10 @@ class CameraComponent():
     surface: Surface
     scale: float = TILE_SCALE
 
+    def get_screenspace_transform(self, pos: Vector2) -> tuple[Vector2, float]:
+        screen_center = Vector2(self.surface.get_size()) / 2
+        return (screen_center - (pos * self.scale), self.scale)
+
 '''
 The sprite drawings system:
 Use the camera position to draw all entities with a sprite at their relative location.
@@ -64,34 +68,31 @@ def draw_sprite_system(group: EntityGroup):
 
     camera = group.query_singleton('camera', 'motion')
     tilemap: TilemapComponent = group.query_singleton('tilemap').tilemap
+    
     surface: Surface = camera.camera.surface
-    scale = camera.camera.scale
-    origin = Vector2(surface.get_size()) / 2 - (camera.motion.position * scale)
-    sprite_scale = Vector2(scale)
+    offset, scale = camera.camera.get_screenspace_transform(camera.motion.position)
+    sprite_scale = scale / TILE_SCALE
 
-    for y, row in enumerate(tilemap.map):
-        for x, tile in enumerate(row):
-            if not tilemap.contains((x, y)):
-                continue
-
+    tile_center = Vector2(scale / 2)
+    for y in range(tilemap.bounds.left, tilemap.bounds.right):
+        for x in range(tilemap.bounds.top, tilemap.bounds.bottom):
+            tile = tilemap.get_tile((x,y))
             tile_surface = TILE_SPRITES[tile]
-            scaled_tile = pygame.transform.scale(tile_surface, sprite_scale)
-            size = Vector2(scaled_tile.get_size())
-            position = Vector2(x, y) * scale + origin - size / 2
-            surface.blit(scaled_tile, position)
+            scaled_sprite = pygame.transform.scale_by(tile_surface, sprite_scale)
+            screen_pos = Vector2(x,y) * scale + offset
+            surface.blit(scaled_sprite, screen_pos - tile_center)
 
     for e in sorted((e for e in group.query('sprite', 'motion') if (e.motion.layer != None)), key = lambda e: -e.motion.layer):
         
         motion: MotionComponent = e.motion
         sprite: SpriteComponent = e.sprite
-
-        scaled_sprite = pygame.transform.scale(sprite.surface, sprite_scale)
-
-        size = Vector2(scaled_sprite.get_size())
-        sprite_pos = motion.position * scale + origin - size / 2
+        
+        scaled_sprite = pygame.transform.scale_by(sprite.surface, sprite_scale)
+        screen_pos = motion.position * scale + offset
+        sprite_center = Vector2(scaled_sprite.get_size())/2
 
         # Note, we are ignoring any screen-space culling
-        surface.blit(scaled_sprite, sprite_pos)
+        surface.blit(scaled_sprite, screen_pos - sprite_center)
 
 def camera_update_system(group: EntityGroup):
     camera_entity = group.query_singleton('camera', 'motion')
