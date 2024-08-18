@@ -4,7 +4,7 @@ from .motion import MotionComponent
 from .sprites import SpriteComponent
 from .player import PlayerComponent
 from .turn import TurnComponent
-from .health import HealthComponent, reduce_player_health
+from .health import HealthComponent
 from . import turn
 from . import motion
 
@@ -27,21 +27,20 @@ def enemy_update_system(group: EntityGroup):
     player: PlayerComponent = group.query_singleton('player')
     t: TurnComponent = group.query_singleton('turn').turn
 
-    # Prior to enemy movement, 
-    # check if any health related actions need to be carried out
-    if (t.state == turn.TURN_ENEMY or t.state == turn.TURN_PLAYER):
-        for e in group.query('enemy', 'health'):
-            if player.motion.position == e.motion.position:
-                reduce_player_health(player, e.enemy.damage)
-                group.remove(entity = e)
+    for e in group.query('enemy', 'health'):
 
-    if (t.state != turn.TURN_ENEMY):
-        return 
-    
-    for e in group.query('enemy'):
-        motion: MotionComponent = e.motion
-        mtp = move_towards_player(player.motion.position, e.motion.position)
-        motion.velocity = mtp
+        if t.state == turn.TURN_ENEMY:
+            motion: MotionComponent = e.motion
+            mtp = move_towards_player(player.motion.position, e.motion.position)
+            motion.velocity = mtp
+
+            if player.motion.position == e.motion.position:
+                player.health.health -= e.enemy.damage
+                group.remove(e)
+                
+        if not e.health.is_alive:
+            group.remove(e)
+
 
 '''
 Mount system
