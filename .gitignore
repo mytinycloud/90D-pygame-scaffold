@@ -8,3 +8,5 @@ build/
 *.spec
 
 launch.json
+
+.DS_Store
