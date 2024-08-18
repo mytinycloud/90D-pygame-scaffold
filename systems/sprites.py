@@ -67,26 +67,42 @@ def draw_sprite_system(group: EntityGroup):
     surface: Surface = camera.camera.surface
     scale = camera.camera.scale
     origin = Vector2(surface.get_size()) / 2 - (camera.motion.position * scale)
-    sprite_scale = Vector2(camera.camera.scale / TILE_SCALE)
+    sprite_scale = Vector2(scale)
 
     for y, row in enumerate(tilemap.map):
         for x, tile in enumerate(row):
+            if not tilemap.contains((x, y)):
+                continue
+
             tile_surface = TILE_SPRITES[tile]
-            surface.blit(tile_surface, Vector2(x, y) * scale + origin - Vector2(TILE_SCALE) / 2)
+            scaled_tile = pygame.transform.scale(tile_surface, sprite_scale)
+            size = Vector2(scaled_tile.get_size())
+            position = Vector2(x, y) * scale + origin - size / 2
+            surface.blit(scaled_tile, position)
 
     for e in sorted((e for e in group.query('sprite', 'motion') if (e.motion.layer != None)), key = lambda e: -e.motion.layer):
         
         motion: MotionComponent = e.motion
         sprite: SpriteComponent = e.sprite
-        
-        size = Vector2(sprite.surface.get_size())
-        sprite_pos = motion.position * scale + origin - size / 2
 
-        scaled_sprite = pygame.transform.scale_by(sprite.surface, sprite_scale)
+        scaled_sprite = pygame.transform.scale(sprite.surface, sprite_scale)
+
+        size = Vector2(scaled_sprite.get_size())
+        sprite_pos = motion.position * scale + origin - size / 2
 
         # Note, we are ignoring any screen-space culling
         surface.blit(scaled_sprite, sprite_pos)
 
+def camera_update_system(group: EntityGroup):
+    camera_entity = group.query_singleton('camera', 'motion')
+    camera_motion: MotionComponent = camera_entity.motion
+    camera: CameraComponent = camera_entity.camera
+    tilemap: TilemapComponent = group.query_singleton('tilemap').tilemap
+    camera_motion.position = tilemap.bounds.topleft + (Vector2(tilemap.bounds.width) - Vector2(1)) / 2
+    scale_size = min(camera.surface.get_width(), camera.surface.get_height())
+    camera.scale = scale_size / tilemap.bounds.width
+
+    
 
 '''
 Mounts the sprite drawing system, and adds a camera component for the viewport
@@ -94,8 +110,9 @@ Mounts the sprite drawing system, and adds a camera component for the viewport
 def mount_sprite_system(group: EntityGroup, target: Surface):
     camera = Entity("camera")
     camera.camera = CameraComponent(surface=target)
-    camera.motion = MotionComponent(position=Vector2(8,8))
+    camera.motion = MotionComponent(position=Vector2(0,0))
     group.add(camera)
 
+    group.mount_system(camera_update_system)
     group.mount_system(draw_sprite_system)
 

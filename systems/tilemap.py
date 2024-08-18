@@ -63,9 +63,12 @@ class TilemapComponent():
 
     @staticmethod
     def from_map(map: Tilemap):
+        bounds = Rect(0, 0, 0, 0)
+        bounds.center = (0, 0)
+
         return TilemapComponent(
             map = map,
-            bounds = Rect(0, 0, len(map[0]), len(map))
+            bounds = bounds
         )
 
 
