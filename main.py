@@ -12,6 +12,7 @@ group = EntityGroup()
 # Note, systems will be run in the order they are mounted
 systems.time.mount_time_system(group, window.clock)
 systems.turn.mount_turn_system(group)
+systems.collision.mount_collision_system(group)
 systems.controls.mount_control_system(group)
 systems.player.mount_player_system(group)
 systems.enemy.mount_enemy_system(group)
