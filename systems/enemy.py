@@ -6,6 +6,7 @@ from .player import PlayerComponent
 from .turn import TurnComponent
 from .health import HealthComponent, reduce_player_health
 from . import turn
+from . import motion
 
 from math import copysign
 from random import choice
@@ -76,7 +77,7 @@ def create_enemy(position = tuple[int, int]):
     enemy = Entity("enemy")
     enemy.enemy = EnemyComponent(damage = 10)
     enemy.sprite = SpriteComponent.from_circle(diameter = 30, color = (0,123,123))
-    enemy.motion = MotionComponent(position = Vector2(position[0],position[1]))
+    enemy.motion = MotionComponent(layer=motion.LAYER_ENEMIES, position = Vector2(position))
     enemy.health = HealthComponent(health = 100)
 
     return enemy

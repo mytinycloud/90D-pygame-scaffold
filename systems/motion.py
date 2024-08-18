@@ -5,6 +5,12 @@ from .turn import TurnComponent
 from .tilemap import TilemapComponent
 from . import utils
 
+LAYER_NONE = None
+LAYER_PLAYER = 0
+LAYER_ENEMIES = 1
+LAYER_EFFECTS = 2
+LAYER_COUNT = 3
+
 '''
 Component containing a position, velocity, ect
 '''
@@ -12,6 +18,7 @@ Component containing a position, velocity, ect
 class MotionComponent():
     position: Vector2 = factory(Vector2)
     velocity: Vector2 = factory(Vector2)
+    layer: int | None = LAYER_NONE
 
 '''
 The motion update system:

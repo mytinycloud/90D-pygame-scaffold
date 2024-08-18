@@ -6,11 +6,12 @@ import math
 
 from .sprites import SpriteComponent
 from .motion import MotionComponent
-from .controls import ControlComponent
 from .tilemap import TilemapComponent
+from .collision import CollisionComponent
 from . import turn
 from . import tilemap
 from . import utils
+from . import motion
 
 
 SHAPE_NONE = 0
@@ -92,6 +93,7 @@ def effect_update_system(group: EntityGroup):
         return
     
     map: TilemapComponent = group.query_singleton('tilemap').tilemap
+    collision: CollisionComponent = group.query_singleton('collision').collision
 
     for e in group.query("effect", "motion"):
         
@@ -149,10 +151,12 @@ def effect_update_system(group: EntityGroup):
             
             # Apply the propagation requests
             for coord, energy, shape in propagation_request:
-                energy = min(energy, max(0, effect.energy -1))
-                new_entity = propagate_entity(e, coord, energy, shape)
-                try_harvest(map, coord, new_entity.effect)
-                group.add(new_entity)
+                
+                if not collision.is_occupied(coord, e.motion.layer):
+                    energy = min(energy, max(0, effect.energy -1))
+                    new_entity = propagate_entity(e, coord, energy, shape)
+                    try_harvest(map, coord, new_entity.effect)
+                    group.add(new_entity)
 
         # decay
         effect.energy -= 1
@@ -186,7 +190,7 @@ def create_effect_templates():
     effect_dict = {}
 
     e = Entity("effect-fire")
-    e.motion = MotionComponent()
+    e.motion = MotionComponent(layer=motion.LAYER_EFFECTS)
     e.sprite = SpriteComponent.from_circle(16, (255,0,0))
     e.effect = EffectComponent(cast_from=[tilemap.TILE_EMBER])
     e.effect.add_harvest(tilemap.TILE_PLANT, tilemap.TILE_EMBER, 3)
@@ -196,7 +200,7 @@ def create_effect_templates():
     effect_dict["fire"] = e
 
     e = Entity("effect-wave")
-    e.motion = MotionComponent()
+    e.motion = MotionComponent(layer=motion.LAYER_EFFECTS)
     e.sprite = SpriteComponent.from_circle(16, (0,0,255))
     e.effect = EffectComponent(cast_from=[tilemap.TILE_WATER],shape=SHAPE_WAVE)
     e.effect.add_harvest(tilemap.TILE_WATER, tilemap.TILE_MUD, 3)
@@ -204,7 +208,7 @@ def create_effect_templates():
     effect_dict["wave"] = e
 
     e = Entity("effect-growth")
-    e.motion = MotionComponent()
+    e.motion = MotionComponent(layer=motion.LAYER_EFFECTS)
     e.sprite = SpriteComponent.from_circle(16, (0,255,0))
     e.effect = EffectComponent(cast_from=[tilemap.TILE_MUD])
     e.effect.add_harvest(tilemap.TILE_MUD, tilemap.TILE_PLANT, 10)
@@ -214,7 +218,7 @@ def create_effect_templates():
     effect_dict["growth"] = e
 
     e = Entity("effect-spark")
-    e.motion = MotionComponent()
+    e.motion = MotionComponent(layer=motion.LAYER_EFFECTS)
     e.sprite = SpriteComponent.from_circle(16, (255,255,0))
     e.effect = EffectComponent(cast_from=[tilemap.TILE_EMBER], shape=SHAPE_LANCE)
     e.effect.add_harvest(tilemap.TILE_EMBER, tilemap.TILE_EARTH, 2)
