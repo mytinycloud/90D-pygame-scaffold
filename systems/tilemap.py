@@ -9,12 +9,6 @@ TILE_MUD = 2
 TILE_PLANT = 3
 TILE_EMBER = 4
 
-EA = TILE_EARTH
-WA = TILE_WATER
-MU = TILE_MUD
-PL = TILE_PLANT
-EM = TILE_EMBER
-
 type Tilemap = list[list[int]]
 # We may want to make this a literal and/or use an enum
 type Tile = int
@@ -53,22 +47,25 @@ class TilemapComponent():
     map: list[list[int]]
 
     def get_tile(self, coord: Union[Vector2, tuple[int, int]]):
-        if not self.bounds.contains((0,0), coord):
+        if not self.contains(coord):
             return None
         
         return self.map[int(coord[1])][int(coord[0])]
     
     def set_tile(self, coord: Union[Vector2, tuple[int, int]], tile: Tile):
-        if not self.bounds.contains((0,0), coord):
-            pass
+        if not self.contains(coord):
+            return
 
         self.map[int(coord[1])][int(coord[0])] = tile
+
+    def contains(self, coord: Union[Vector2, tuple[int, int]]):
+        return self.bounds.contains(coord, (0, 0))
 
     @staticmethod
     def from_map(map: Tilemap):
         return TilemapComponent(
             map = map,
-            bounds = Rect(0, 0, len(map)-1, len(map[0])-1)
+            bounds = Rect(0, 0, len(map[0]), len(map))
         )
 
 

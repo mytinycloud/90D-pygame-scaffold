@@ -96,6 +96,13 @@ class EntityGroup():
         self._add_entity_queue.append(entity)
 
     '''
+    Add multiple entities to the group. See: add
+    '''
+    def add_all(self, *entities: Entity):
+        for e in entities:
+            self.add(e)
+
+    '''
     Remove an entity from the group.
     This is deferred till the start of the next frame.
     '''

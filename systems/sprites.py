@@ -17,7 +17,6 @@ A component that contains sprite information
 @enumerate_component("sprite")
 class SpriteComponent():
     surface: Surface
-    z: float = 0
 
     '''
     Creates a sprite from a resource file
@@ -75,7 +74,7 @@ def draw_sprite_system(group: EntityGroup):
             tile_surface = TILE_SPRITES[tile]
             surface.blit(tile_surface, Vector2(x, y) * scale + origin - Vector2(TILE_SCALE) / 2)
 
-    for e in sorted(group.query('sprite', 'motion'), key = lambda e: e.sprite.z):
+    for e in sorted((e for e in group.query('sprite', 'motion') if (e.motion.layer != None)), key = lambda e: -e.motion.layer):
         
         motion: MotionComponent = e.motion
         sprite: SpriteComponent = e.sprite

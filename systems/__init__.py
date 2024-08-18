@@ -11,3 +11,4 @@ from . import spell
 from . import ui
 from . import health
 from . import enemy
+from . import collision
