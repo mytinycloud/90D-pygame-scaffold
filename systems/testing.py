@@ -20,10 +20,10 @@ def testing_system(group: EntityGroup):
 Mount the testing system any testing init
 '''
 def mount_testing_system(group: EntityGroup):
-    group.add(create_enemy((8,5)))
+    group.add(create_enemy((13,10)))
 
     # Create group of enemies randomly placed on map.
-    for i in range(4):
+    for i in range(3):
         enemy = create_enemy((choice(range(5,15)), choice(range(5,15))))
         group.add(enemy)
 

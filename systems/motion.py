@@ -1,3 +1,4 @@
+from enum import Enum
 from engine.ecs import EntityGroup, enumerate_component, factory
 from pygame import Vector2
 
@@ -10,6 +11,12 @@ LAYER_PLAYER = 0
 LAYER_ENEMIES = 1
 LAYER_EFFECTS = 2
 LAYER_COUNT = 3
+
+class Direction:
+    UP = Vector2(0, -1)
+    DOWN = Vector2(0, 1)
+    LEFT = Vector2(-1, 0)
+    RIGHT = Vector2(1, 0)
 
 '''
 Component containing a position, velocity, ect

@@ -37,7 +37,7 @@ def player_update_system(group: EntityGroup):
     t: turn.TurnComponent = group.query_singleton("turn").turn
     player = group.query_singleton('player', 'motion', 'health')
 
-    if t.state != turn.TURN_PLAYER or not player.heath.is_alive:
+    if t.state != turn.TURN_PLAYER or not player.health.is_alive:
         # Nothing we can do
         return
 
