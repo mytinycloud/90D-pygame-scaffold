@@ -71,6 +71,15 @@ def shuffled(items: list) -> list:
     random.shuffle(items)
     return items
 
+
+def try_harvest(map: TilemapComponent, pos: Vector2, effect: EffectComponent):
+    tile = map.get_tile(pos)
+    if tile in effect.harvests:
+        new_tile, energy_gain = effect.harvests[tile]
+        map.set_tile(pos, new_tile)
+        effect.energy += energy_gain
+
+
 '''
 The effect update system:
 Handles effect propigation and decay (probably)
@@ -92,11 +101,7 @@ def effect_update_system(group: EntityGroup):
         dir = effect.direction
 
         # Harvesting
-        tile = map.get_tile(pos)
-        if tile in effect.harvests:
-            new_tile, energy_gain = effect.harvests[tile]
-            map.set_tile(pos, new_tile)
-            effect.energy += energy_gain
+        try_harvest(map, pos, effect)
         
         # Propagation
         if effect.energy > 1:
@@ -144,9 +149,10 @@ def effect_update_system(group: EntityGroup):
             
             # Apply the propagation requests
             for coord, energy, shape in propagation_request:
-                energy = min(energy, max(0, effect.energy -1))              
-                group.add( propagate_entity(e, coord, energy, shape) )
-      
+                energy = min(energy, max(0, effect.energy -1))
+                new_entity = propagate_entity(e, coord, energy, shape)
+                try_harvest(map, coord, new_entity.effect)
+                group.add(new_entity)
 
         # decay
         effect.energy -= 1
