@@ -5,10 +5,12 @@ from .sprites import SpriteComponent
 from .player import PlayerComponent
 from .turn import TurnComponent
 from .health import HealthComponent, reduce_player_health
+from .tilemap import TilemapComponent
 from . import turn
 
 from math import copysign
 from random import choice
+from queue import PriorityQueue
 
 '''
 A component that represents a generic enemy
@@ -25,23 +27,18 @@ def enemy_update_system(group: EntityGroup):
 
     player: PlayerComponent = group.query_singleton('player')
     t: TurnComponent = group.query_singleton('turn').turn
+    tm: TilemapComponent = group.query_singleton('tilemap')
 
-    # Prior to enemy movement, 
-    # check if any health related actions need to be carried out
-    if (t.state == turn.TURN_ENEMY or t.state == turn.TURN_PLAYER):
-        for e in group.query('enemy', 'health'):
+    if t.state == turn.TURN_ENEMY or t.state == turn.TURN_PLAYER:
+        for e in group.query('enemy'):
+            if t.state == turn.TURN_ENEMY:
+                motion: MotionComponent = e.motion
+                mtp = a_star(tm.tilemap.map, (e.motion.position.x, e.motion.position.y), (player.motion.position.x, player.motion.position.y))
+                motion.velocity = mtp
+
             if player.motion.position == e.motion.position:
                 reduce_player_health(player, e.enemy.damage)
                 group.remove(entity = e)
-
-    if (t.state != turn.TURN_ENEMY):
-        return 
-    
-    for e in group.query('enemy'):
-        motion: MotionComponent = e.motion
-        mtp = move_towards_player(player.motion.position, e.motion.position)
-        motion.velocity = mtp
-
 '''
 Mount system
 '''
@@ -49,11 +46,10 @@ def mount_enemy_system(group: EntityGroup):
     group.mount_system(enemy_update_system)
 
 '''
-Naive pathing implementation to move towards player one 
-step at a time. If the enemy is not in either x or y plane, then choose
-a random plane to move on. 
+Immediate motion next step for A* calculating the velocity from the
+enemy's current and next path index
 '''
-def move_towards_player(p_pos: Vector2, e_pos: Vector2):
+def calculate_velocity(p_pos: Vector2, e_pos: Vector2):
 
     delta = p_pos - e_pos
 
@@ -80,3 +76,85 @@ def create_enemy(position = tuple[int, int]):
     enemy.health = HealthComponent(health = 100)
 
     return enemy
+
+'''
+Calculating cost of individual tile for A*
+'''
+def get_cost(value):
+    cost_mapping = {
+        0: 1,   #  Earth 
+        1: 100, #  Water
+        2: 10,  #  Mud
+        3: 5,   #  Plant
+        4: 20  #  Ember
+    }
+    return cost_mapping.get(value, 1000)  # Default to infinity for unrecognized values
+
+'''
+Heuristic function (Manhattan distance for grid)
+'''
+def heuristic(a, b):
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+'''
+A* algorithm implementation including. Returns next immediate velocity for enemy to take
+'''
+def a_star(map, e_pos, p_pos):
+
+    frontier = PriorityQueue()
+    frontier.put((0, e_pos))  # Priority queue stores (priority, node)
+    
+    came_from = {}
+    cost_so_far = {}
+    
+    came_from[e_pos] = None
+    cost_so_far[e_pos] = 0
+    
+    while not frontier.empty():
+        _, current = frontier.get()
+        
+        if current == p_pos:
+            break
+        
+        # Define the possible moves (up, down, left, right)
+        neighbors = [
+            (current[0] + 1, current[1]),   # Right 
+            (current[0] - 1, current[1]),   # Left
+            (current[0], current[1] + 1),   # Down
+            (current[0], current[1] - 1)    # Up
+        ]
+        
+        for next in neighbors:
+            # Check if next position is within grid bounds
+
+            if 0 <= next[0] < len(map) and 0 <= next[1] < len(map[0]):
+                # Calculate the cost to move to the neighbor
+                # TODO: Check, this might be reversed
+                next_x = int(next[0])
+                next_y = int(next[1])
+                new_cost = cost_so_far[current] + get_cost(map[next_y][next_x])
+                
+                # If the neighbor hasn't been visited or a cheaper path is found
+                if next not in cost_so_far or new_cost < cost_so_far[next]:
+                    cost_so_far[next] = new_cost
+                    priority = new_cost + heuristic(p_pos, next)
+                    frontier.put((priority, next))
+                    came_from[next] = current
+    
+    # Reconstruct path
+    path = []
+    current = p_pos
+    while current != e_pos:  # Trace the path back from goal to start
+        path.append(current)
+        current = came_from[current]
+    path.append(e_pos)
+    path.reverse()  # Reverse the path to start -> goal
+
+    velocity = Vector2((0,0))
+
+    # Because system uses last two path nodes for A* to calculate next immediate 
+    # vector for enemy to take towards player, with paht[0] being the current position
+    if(len(path)>= 2):
+        velocity = calculate_velocity(Vector2(path[1]), Vector2(path[0]))
+    
+    return velocity  # Return the path and total cost
