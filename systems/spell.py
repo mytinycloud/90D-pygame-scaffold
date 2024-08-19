@@ -120,7 +120,7 @@ def mount_spell_system(group: EntityGroup):
     selected_spell_entity = Entity("selected_spell")
     selected_spell_entity.selected_spell = SelectedSpellComponent()
     selected_spell_entity.ui = UIComponent(text="")
-    selected_spell_entity.motion = MotionComponent(position=Vector2(50, 50))
+    selected_spell_entity.motion = MotionComponent(position=Vector2(10, 50))
     selected_spell_entity.tile_area = TileAreaComponent()
 
     group.add_all(water_wave, plant_growth, spark, fire_lance)

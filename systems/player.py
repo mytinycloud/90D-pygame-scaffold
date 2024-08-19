@@ -1,6 +1,8 @@
 from engine.ecs import Entity, EntityGroup, enumerate_component
 from pygame import Vector2
 
+from systems.ui import UIComponent
+
 from .sprites import SpriteComponent
 from .motion import MotionComponent
 from .controls import ControlComponent
@@ -36,6 +38,9 @@ def player_update_system(group: EntityGroup):
 
     t: turn.TurnComponent = group.query_singleton("turn").turn
     player = group.query_singleton('player', 'motion', 'health')
+    health_bar = group.query_singleton('health', 'motion', 'ui')
+
+    health_bar.ui.text = "Health: " + str(player.health.health)
 
     if t.state != turn.TURN_PLAYER or not player.health.is_alive:
         # Nothing we can do
@@ -63,5 +68,12 @@ def mount_player_system(group: EntityGroup):
     player.sprite = SpriteComponent.from_box((32, 32), (255,0,0))
     player.health = HealthComponent(health = 100)
     group.add(player)
+
+    health_box = Entity("health_box")
+    health_box.motion = MotionComponent(position=Vector2(10,90))
+    health_box.ui = UIComponent(text="Health: " + str(player.health.health))
+    # So, this will probably cause issues. Sue me.
+    health_box.health = player.health
+    group.add(health_box)
 
     group.mount_system(player_update_system)
