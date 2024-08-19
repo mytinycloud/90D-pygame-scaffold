@@ -42,8 +42,13 @@ def player_update_system(group: EntityGroup):
 
     health_bar.ui.text = "Health: " + str(player.health.health)
 
-    if t.state != turn.TURN_PLAYER or not player.health.is_alive:
+    if t.state != turn.TURN_PLAYER:
         # Nothing we can do
+        return
+    
+    if not player.health.is_alive:
+        game: GameComponent = group.query_singleton('game').game
+        game.state = game.STATE_GAME_OVER
         return
 
     controls: ControlComponent = group.query_singleton('controls').controls

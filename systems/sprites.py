@@ -102,9 +102,12 @@ def camera_update_system(group: EntityGroup):
     camera_motion: MotionComponent = camera_entity.motion
     camera: CameraComponent = camera_entity.camera
     tilemap: TilemapComponent = group.query_singleton('tilemap').tilemap
+    if not tilemap:
+        return
+
     camera_motion.position = tilemap.bounds.topleft + (Vector2(tilemap.bounds.width) - Vector2(1)) / 2
     scale_size = min(camera.surface.get_width(), camera.surface.get_height())
-    camera.scale = scale_size / tilemap.bounds.width
+    camera.scale = scale_size if tilemap.bounds.width == 0 else scale_size / tilemap.bounds.width
 
     
 

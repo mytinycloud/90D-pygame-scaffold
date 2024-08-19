@@ -1,10 +1,12 @@
 import random
-from pygame import Rect, Vector2
+from pygame import Rect, Surface, Vector2
 from engine.ecs import Entity, EntityGroup, enumerate_component, factory
+from systems.controls import ControlComponent
 from systems.enemy import create_enemy
 from systems.motion import Direction, MotionComponent
+from systems.sprites import CameraComponent
 from systems.tilemap import TilemapComponent
-from systems.turn import TurnComponent
+from systems.turn import TURN_PLAYER, TurnComponent
 from systems.ui import UIComponent
 from systems.utils import round_vector
 
@@ -73,7 +75,20 @@ class EnemySpawnComponent:
     last_spawned_turn: int = 0
     area: Rect = None
 
+@enumerate_component('game')
+class GameComponent:
+    STATE_START_SCREEN = 0
+    STATE_PLAYING = 1
+    STATE_GAME_OVER = 2
+    STATE_WIN = 3
+
+    state: int = 0
+
 def level_progression_system(group: EntityGroup):
+    game: GameComponent = group.query_singleton('game').game
+    if game.state != game.STATE_PLAYING:
+        return
+
     enemy_entities = group.query('enemy')
     spawn_entities = group.query('spawn')
     level_entity = group.query_singleton('level', 'ui')
@@ -122,9 +137,45 @@ def spawn_enemy_system(group: EntityGroup):
         enemy = ENEMY_TYPES.get(spawn.enemy_type).clone()
         enemy.motion.position = Vector2(random_spawn)
         group.add(enemy)
+
+def game_state_system(group: EntityGroup):
+    game_entity = group.query_singleton('game', 'ui')
+    game: GameComponent = game_entity.game
+    controls: ControlComponent = group.query_singleton('controls').controls
+
+    if game.state == game.STATE_START_SCREEN:
+        if len(controls.actions) > 0:    
+            game.state = game.STATE_PLAYING
+            game_entity.ui.text = ''
+
+    elif game.state == game.STATE_GAME_OVER:
+        camera: CameraComponent = group.query_singleton('camera').camera
+        camera_surface = camera.surface
+
+        game_over = Entity('game_over')
+        game_over.ui = UIComponent(text='Game Over')
+        game_over.motion = MotionComponent(position=camera_surface.get_rect().center - Vector2(50, 0))
+        group.add(game_over)
+
+
+    elif game.state == game.STATE_WIN:
+        camera: CameraComponent = group.query_singleton('camera').camera
+        camera_surface = camera.surface
+
+        game_over = Entity('you_win')
+        game_over.ui = UIComponent(text='You win!')
+        game_over.motion = MotionComponent(position=camera_surface.get_rect().center - Vector2(50, 0))
+        group.add(game_over)
     
 
-def mount_level_system(group: EntityGroup):
+def mount_level_system(group: EntityGroup, surface: Surface):
+    game_entity = Entity('game')
+    game_entity.game = GameComponent()
+    game_entity.motion = MotionComponent(position=surface.get_rect().center - Vector2(100, 0))
+    game_entity.ui = UIComponent(text='Press any key to start')
+
+    group.add(game_entity)
+
     level_entity = Entity('levels')
     level_entity.level = LevelComponent(levels=LEVELS)
     level_entity.ui = UIComponent(text='')
@@ -132,6 +183,7 @@ def mount_level_system(group: EntityGroup):
 
     group.add(level_entity)
 
+    group.mount_system(game_state_system)
     group.mount_system(level_progression_system)
     group.mount_system(spawn_enemy_system)
 
