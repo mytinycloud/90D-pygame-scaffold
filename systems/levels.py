@@ -1,3 +1,4 @@
+import random
 from pygame import Rect, Vector2
 from engine.ecs import Entity, EntityGroup, enumerate_component, factory
 from systems.enemy import create_enemy
@@ -5,6 +6,7 @@ from systems.motion import Direction, MotionComponent
 from systems.tilemap import TilemapComponent
 from systems.turn import TurnComponent
 from systems.ui import UIComponent
+from systems.utils import round_vector
 
 
 ENEMY_TYPES = {
@@ -15,6 +17,7 @@ ENEMY_TYPES = {
 
 LEVELS = {
     1: {
+        'spawn_area': (120, 120, 1, 16),
         'enemies': {
             'mook': 5,
             'boss': 1
@@ -22,11 +25,36 @@ LEVELS = {
         'map_bounds': (16, 16)
     },
     2: {
+        'spawn_area': (112, 112, 1, 32),
         'enemies': {
             'mook': 20,
-            'boss': 5
+            'boss': 4
         },
         'map_bounds': (32, 32)
+    },
+    3: {
+        'spawn_area': (130, 150, 4, 4),
+        'enemies': {
+            'mook': 40,
+            'boss': 8
+        },
+        'map_bounds': (64, 64)
+    },
+    4: {
+        'spawn_area': (150, 150, 12, 12),
+        'enemies': {
+            'mook': 80,
+            'boss': 16
+        },
+        'map_bounds': (128, 128)
+    },
+    5: {
+        'spawn_area': (0, 0, 256, 256),
+        'enemies': {
+            'mook': 160,
+            'boss': 32
+        },
+        'map_bounds': (256, 256)
     }
 }
 
@@ -43,6 +71,7 @@ class EnemySpawnComponent:
     count: int = None
     interval: float = None
     last_spawned_turn: int = 0
+    area: Rect = None
 
 def level_progression_system(group: EntityGroup):
     enemy_entities = group.query('enemy')
@@ -62,11 +91,11 @@ def level_progression_system(group: EntityGroup):
         if not level_config == None:
             map: TilemapComponent = group.query_singleton('tilemap').tilemap
             map.bounds = Rect(Vector2(len(map.map))/2 - Vector2(level_config['map_bounds']) / 2, level_config['map_bounds'])
-            random_spawn = Vector2(0, 0) # TODO: Make this along the border edge
+            spawn_area = Rect(level_config['spawn_area'])
             for enemy_type, count in level_config['enemies'].items():
                 spawn = Entity('spawn')
-                spawn.spawn = EnemySpawnComponent(enemy_type=enemy_type, count=count, interval=10)
-                spawn.motion = MotionComponent(position=random_spawn, velocity=Direction.RIGHT)
+                spawn.spawn = EnemySpawnComponent(enemy_type=enemy_type, count=count, interval=5, area=spawn_area)
+                spawn.motion = MotionComponent(position=spawn_area.topleft)
                 group.add(spawn)
         else:
             print('Game Over. You win!')
@@ -77,7 +106,8 @@ def spawn_enemy_system(group: EntityGroup):
     spawn_entities = group.query('spawn', 'motion')
     for spawn_entity in spawn_entities:
         spawn: EnemySpawnComponent = spawn_entity.spawn
-        motion: MotionComponent = spawn_entity.motion
+        spawn_area = spawn.area
+
         if spawn.count <= 0:
             group.remove(spawn_entity)
             continue
@@ -85,10 +115,12 @@ def spawn_enemy_system(group: EntityGroup):
         if turn.number - spawn.last_spawned_turn < spawn.interval:
             continue
 
+
+        random_spawn = round_vector(Vector2(spawn_area.topleft) + Vector2(spawn_area.size) * random.random())
         spawn.last_spawned_turn = turn.number
         spawn.count -= 1
         enemy = ENEMY_TYPES.get(spawn.enemy_type).clone()
-        enemy.motion.position = Vector2(motion.position)
+        enemy.motion.position = Vector2(random_spawn)
         group.add(enemy)
     
 

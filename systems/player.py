@@ -59,7 +59,7 @@ Adds the player character, and mounts systems for updating the player with the c
 def mount_player_system(group: EntityGroup):
     player = Entity("player")
     player.player = PlayerComponent()
-    player.motion = MotionComponent(layer=motion.LAYER_PLAYER, position=Vector2(50,50))
+    player.motion = MotionComponent(layer=motion.LAYER_PLAYER, position=Vector2(128,128))
     player.sprite = SpriteComponent.from_box((32, 32), (255,0,0))
     player.health = HealthComponent(health = 100)
     group.add(player)
