@@ -8,6 +8,13 @@ TILE_WATER = 1
 TILE_MUD = 2
 TILE_PLANT = 3
 TILE_EMBER = 4
+TILE_ICE = 5
+TILE_ROCK = 6
+TILE_LAVA = 7
+TILE_HELLSCAPE = 8
+TILE_ASH = 9
+TILE_MARSH = 10
+TILE_OOZE = 11
 
 type Tilemap = list[list[int]]
 # We may want to make this a literal and/or use an enum
@@ -25,7 +32,14 @@ TILE_COLOR_MAP = {
     rgb_key(Color('#4772e5')): TILE_WATER,
     rgb_key(Color('#5d330e')): TILE_MUD,
     rgb_key(Color('#6ad127')): TILE_PLANT,
-    rgb_key(Color('#e04a09')): TILE_EMBER
+    rgb_key(Color('#e04a09')): TILE_EMBER,
+    rgb_key(Color('#c5d5ff')): TILE_ICE,
+    rgb_key(Color('#9fa2aa')): TILE_ROCK,
+    rgb_key(Color('#df4a00')): TILE_LAVA,
+    rgb_key(Color('#56001a')): TILE_HELLSCAPE,
+    rgb_key(Color('#46403a')): TILE_ASH,
+    rgb_key(Color('#762981')): TILE_MARSH,
+    rgb_key(Color('#d30b91')): TILE_OOZE,
 }
 
 asset_pipeline = AssetPipeline.get_instance()
@@ -63,9 +77,12 @@ class TilemapComponent():
 
     @staticmethod
     def from_map(map: Tilemap):
+        bounds = Rect(0, 0, 0, 0)
+        bounds.center = (0, 0)
+
         return TilemapComponent(
             map = map,
-            bounds = Rect(0, 0, len(map[0]), len(map))
+            bounds = bounds
         )
 
 
@@ -75,7 +92,8 @@ def parse_tile_map(image_path: str) -> Tilemap:
     for y in range(map_surface.get_height()):
         map.append(list())
         for x in range(map_surface.get_width()):
-            tile = TILE_COLOR_MAP[rgb_key(map_surface.get_at((x, y)))] or TILE_EARTH
+            tile_color = rgb_key(map_surface.get_at((x, y)))
+            tile = TILE_COLOR_MAP.get(tile_color) or TILE_EARTH
             map[y].append(tile)
     
     return map
