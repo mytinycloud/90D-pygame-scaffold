@@ -8,7 +8,8 @@ from systems.sprites import CameraComponent
 from systems.tilemap import TILE_EMBER, TILE_MUD, TILE_PLANT, TILE_WATER, Tile, TilemapComponent
 from systems.turn import TurnComponent
 from systems.ui import UIComponent
-from systems.utils import clamp_vector
+
+from . import utils
 
 @enumerate_component("spell")
 class SpellComponent:
@@ -98,7 +99,7 @@ def spell_cast_system(group: EntityGroup):
         camera_entity = group.query_singleton('camera', 'motion')
         camera: CameraComponent = camera_entity.camera
         offset, scale = camera.get_screenspace_transform(camera_entity.motion.position)
-        effect_direction = clamp_vector(controls.mouse_grid_position - selected_spell.spell_casting_start, Vector2(-1,-1), Vector2(1,1))
+        effect_direction = utils.closest_cardinal(controls.mouse_grid_position - selected_spell.spell_casting_start)
         size = selected_spell.spell_casting_start.distance_to(controls.mouse_grid_position) * scale
         surface = Surface(Vector2(size*2), pygame.SRCALPHA)
         pygame.draw.line(surface, (0,0,0), Vector2(size), (effect_direction * size), 5)

@@ -79,7 +79,7 @@ def calculate_velocity(p_pos: Vector2, e_pos: Vector2):
 def create_enemy(position = tuple[int, int]):
     enemy = Entity("enemy")
     enemy.enemy = EnemyComponent(damage = 10)
-    enemy.sprite = SpriteComponent.from_circle(diameter = 30, color = (0,123,123))
+    enemy.sprite = SpriteComponent.from_resource("creatures/enemy.png")
     enemy.motion = MotionComponent(layer=motion.LAYER_ENEMIES, position = Vector2(position))
     enemy.health = HealthComponent(health = 100)
 
