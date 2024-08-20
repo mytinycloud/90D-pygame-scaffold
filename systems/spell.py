@@ -16,6 +16,7 @@ class SpellComponent:
     select_action: str
     effect: str = "wave"
     initial_tile: Tile = None
+    color: tuple[int,int,int]
 
 
 @enumerate_component("selected_spell")
@@ -23,6 +24,7 @@ class SelectedSpellComponent:
     spell_action: str = None
     spell_casting_start: Vector2 = None
     target_tile: Tile = None
+    spell_color: tuple[int,int,int] = None
 
 @enumerate_component("tile_area")
 class TileAreaComponent:
@@ -80,6 +82,7 @@ def spell_select_system(group: EntityGroup):
         if spell.select_action in actions or selected_spell.spell_action is None:
             selected_spell.spell_action = spell.select_action
             selected_spell.target_tile = spell.initial_tile
+            selected_spell.spell_color = spell.color
             ui.text = spell_entity.name
             break
 
@@ -100,9 +103,11 @@ def spell_cast_system(group: EntityGroup):
         camera: CameraComponent = camera_entity.camera
         offset, scale = camera.get_screenspace_transform(camera_entity.motion.position)
         effect_direction = utils.closest_cardinal(controls.mouse_grid_position - selected_spell.spell_casting_start)
-        surface = Surface(Vector2(scale*2), pygame.SRCALPHA)
-        pygame.draw.line(surface, (0,0,0), Vector2(scale), Vector2(scale) + (effect_direction * scale), 5)
-        camera.surface.blit(surface, (selected_spell.spell_casting_start * scale + offset) - Vector2(scale))
+        if selected_spell.spell_color:
+            surface = Surface(Vector2(scale*2), pygame.SRCALPHA)
+            pygame.draw.line(surface, selected_spell.spell_color, Vector2(scale), Vector2(scale) + (effect_direction * scale), 5)
+            pygame.draw.circle(surface, selected_spell.spell_color, Vector2(scale), 8)
+            camera.surface.blit(surface, (selected_spell.spell_casting_start * scale + offset) - Vector2(scale))
         
 
     if "mouse_0_start" in controls.actions:
@@ -121,13 +126,13 @@ def spell_cast_system(group: EntityGroup):
 
 def mount_spell_system(group: EntityGroup):
     water_wave = Entity("Water wave")
-    water_wave.spell = SpellComponent(select_action="select_spell_1", effect="wave", initial_tile=TILE_WATER)
-    plant_growth = Entity("Plant growth")
-    plant_growth.spell = SpellComponent(select_action="select_spell_2", effect="growth", initial_tile=TILE_MUD)
+    water_wave.spell = SpellComponent(select_action="select_spell_1", effect="wave", initial_tile=TILE_WATER, color=(0,0,255))
+    plant_growth = Entity("Brambles")
+    plant_growth.spell = SpellComponent(select_action="select_spell_2", effect="growth", initial_tile=TILE_MUD, color=(0,255,0))
     spark = Entity("Spark")
-    spark.spell = SpellComponent(select_action="select_spell_3", effect="fire", initial_tile=TILE_PLANT)
+    spark.spell = SpellComponent(select_action="select_spell_3", effect="fire", initial_tile=TILE_PLANT, color=(0,255,0))
     fire_lance = Entity("Fire lance")
-    fire_lance.spell = SpellComponent(select_action="select_spell_4", effect="spark", initial_tile=TILE_EMBER)
+    fire_lance.spell = SpellComponent(select_action="select_spell_4", effect="spark", initial_tile=TILE_EMBER, color=(255,255,0))
 
     selected_spell_entity = Entity("selected_spell")
     selected_spell_entity.selected_spell = SelectedSpellComponent()
