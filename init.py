@@ -13,6 +13,7 @@ def init(group: EntityGroup, _: Window):
     group.add(tilemap)
 
     pygame.mixer.music.load('assets/sounds/Retro_Forest_-_David_Fesliyan.mp3')
+    pygame.mixer.music.set_volume(0.2)
     pygame.mixer.music.play(-1)
 
     pygame.font.init()
