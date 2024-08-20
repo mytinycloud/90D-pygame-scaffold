@@ -130,7 +130,7 @@ def mount_spell_system(group: EntityGroup):
     plant_growth = Entity("Brambles")
     plant_growth.spell = SpellComponent(select_action="select_spell_2", effect="growth", initial_tile=TILE_MUD, color=(0,255,0))
     spark = Entity("Spark")
-    spark.spell = SpellComponent(select_action="select_spell_3", effect="fire", initial_tile=TILE_PLANT, color=(0,255,0))
+    spark.spell = SpellComponent(select_action="select_spell_3", effect="fire", initial_tile=TILE_PLANT, color=(255,0,0))
     fire_lance = Entity("Fire lance")
     fire_lance.spell = SpellComponent(select_action="select_spell_4", effect="spark", initial_tile=TILE_EMBER, color=(255,255,0))
 
