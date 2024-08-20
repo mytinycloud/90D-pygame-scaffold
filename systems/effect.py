@@ -219,7 +219,7 @@ def create_effect_templates():
     e = Entity("effect-fire")
     e.motion = MotionComponent(layer=motion.LAYER_EFFECTS)
     e.sprite = SpriteComponent.from_circle(16, (255,0,0))
-    e.effect = EffectComponent(name="fire", cast_from=[tilemap.TILE_EMBER], damage=200)
+    e.effect = EffectComponent(name="fire", cast_from=[tilemap.TILE_PLANT], shape=SHAPE_WAVE, damage=200)
     e.effect.add_harvest(tilemap.TILE_PLANT, tilemap.TILE_EMBER, 3)
     e.effect.add_harvest(tilemap.TILE_WATER, tilemap.TILE_MUD, -3)
     e.effect.add_harvest(tilemap.TILE_MUD, tilemap.TILE_EARTH, -1)

@@ -15,6 +15,7 @@ TILE_HELLSCAPE = 8
 TILE_ASH = 9
 TILE_MARSH = 10
 TILE_OOZE = 11
+TILE_BONES = 12
 
 type Tilemap = list[list[int]]
 # We may want to make this a literal and/or use an enum

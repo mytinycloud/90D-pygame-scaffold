@@ -8,6 +8,7 @@ from .health import HealthComponent
 from .tilemap import TilemapComponent
 from . import turn
 from . import motion
+from . import tilemap
 
 from math import copysign
 from random import choice
@@ -26,15 +27,15 @@ Update enemy systems including motion and when to do damage to player
 '''
 def enemy_update_system(group: EntityGroup):
 
-    player: PlayerComponent = group.query_singleton('player')
+    player = group.query_singleton('player')
     t: TurnComponent = group.query_singleton('turn').turn
-    tm: TilemapComponent = group.query_singleton('tilemap')
+    tm: TilemapComponent = group.query_singleton('tilemap').tilemap
 
     for e in group.query('enemy', 'health'):
 
         if t.state == turn.TURN_ENEMY:
             motion: MotionComponent = e.motion
-            mtp = a_star(tm.tilemap.map, (e.motion.position.x, e.motion.position.y), (player.motion.position.x, player.motion.position.y))
+            mtp = a_star(tm.map, (e.motion.position.x, e.motion.position.y), (player.motion.position.x, player.motion.position.y))
             motion.velocity = mtp
 
             if player.motion.position == e.motion.position:
@@ -42,6 +43,7 @@ def enemy_update_system(group: EntityGroup):
                 group.remove(e)
                 
         if not e.health.is_alive:
+            tm.set_tile(e.motion.position, tilemap.TILE_BONES)
             group.remove(e)
 
 
