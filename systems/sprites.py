@@ -24,8 +24,8 @@ class SpriteComponent():
     '''
     @staticmethod
     def from_resource(resource: str) -> 'SpriteComponent':
-        resource = os.path.join("resources", resource)
-        surface = pygame.image.load(resource)
+        asset_pipeline = AssetPipeline.get_instance()
+        surface = asset_pipeline.get_image(resource)
         return SpriteComponent(surface=surface)
 
     '''

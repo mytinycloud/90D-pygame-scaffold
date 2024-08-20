@@ -47,7 +47,7 @@ def player_update_system(group: EntityGroup):
         return
     
     if not player.health.is_alive:
-        game: GameComponent = group.query_singleton('game').game
+        game = group.query_singleton('game').game
         game.state = game.STATE_GAME_OVER
         return
 
@@ -70,7 +70,7 @@ def mount_player_system(group: EntityGroup):
     player = Entity("player")
     player.player = PlayerComponent()
     player.motion = MotionComponent(layer=motion.LAYER_PLAYER, position=Vector2(128,128))
-    player.sprite = SpriteComponent.from_box((32, 32), (255,0,0))
+    player.sprite = SpriteComponent.from_resource("creatures/wizard.png")
     player.health = HealthComponent(health = 100)
     group.add(player)
 
