@@ -17,11 +17,11 @@ systems.collision.mount_collision_system(group)
 systems.controls.mount_control_system(group)
 systems.player.mount_player_system(group)
 systems.enemy.mount_enemy_system(group)
-systems.spell.mount_spell_system(group)
 systems.effect.mount_effect_system(group)
 systems.motion.mount_motion_system(group)
 systems.health.mount_health_system(group)
 systems.sprites.mount_sprite_system(group, window.surface)
+systems.spell.mount_spell_system(group)
 systems.ui.mount_ui_system(group)
 
 # Game Initialization

@@ -1,8 +1,10 @@
-from pygame import Vector2
+from pygame import Surface, Vector2
+import pygame
 from engine.ecs import Entity, EntityGroup, enumerate_component, factory
 from systems.controls import ControlComponent
 from systems.effect import EffectComponent, create_effect
 from systems.motion import Direction, MotionComponent
+from systems.sprites import CameraComponent
 from systems.tilemap import TILE_EMBER, TILE_MUD, TILE_PLANT, TILE_WATER, Tile, TilemapComponent
 from systems.turn import TurnComponent
 from systems.ui import UIComponent
@@ -91,6 +93,17 @@ def spell_cast_system(group: EntityGroup):
 
     if not turn.waiting:
         return
+    
+    if selected_spell.spell_casting_start:
+        camera_entity = group.query_singleton('camera', 'motion')
+        camera: CameraComponent = camera_entity.camera
+        offset, scale = camera.get_screenspace_transform(camera_entity.motion.position)
+        effect_direction = clamp_vector(controls.mouse_grid_position - selected_spell.spell_casting_start, Vector2(-1,-1), Vector2(1,1))
+        size = selected_spell.spell_casting_start.distance_to(controls.mouse_grid_position) * scale
+        surface = Surface(Vector2(size*2), pygame.SRCALPHA)
+        pygame.draw.line(surface, (0,0,0), Vector2(size), (effect_direction * size), 5)
+        camera.surface.blit(surface, (selected_spell.spell_casting_start * scale + offset) - Vector2(size))
+        
 
     if "mouse_0_start" in controls.actions:
         selected_spell.spell_casting_start = controls.mouse_grid_position
@@ -99,7 +112,6 @@ def spell_cast_system(group: EntityGroup):
             spell: SpellComponent = spell_entity.spell
             
             if spell.select_action == selected_spell.spell_action and selected_spell.spell_casting_start in tile_area.tile_positions:
-                effect_direction = clamp_vector(controls.mouse_grid_position - selected_spell.spell_casting_start, Vector2(-1,-1), Vector2(1,1))
                 effect_entity = create_effect(spell.effect, selected_spell.spell_casting_start, effect_direction)
                 group.add(effect_entity)
                 turn.waiting = False
