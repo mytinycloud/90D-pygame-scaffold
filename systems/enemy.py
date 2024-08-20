@@ -85,18 +85,20 @@ def create_enemy(position = tuple[int, int]):
 
     return enemy
 
+
+COST_MAPPING = {
+    0: 1,   #  Earth 
+    1: 3, #  Water
+    2: 2,  #  Mud
+    3: 2,   #  Plant
+    4: 3  #  Ember
+}
+
 '''
 Calculating cost of individual tile for A*
 '''
 def get_cost(value):
-    cost_mapping = {
-        0: 1,   #  Earth 
-        1: 100, #  Water
-        2: 10,  #  Mud
-        3: 5,   #  Plant
-        4: 20  #  Ember
-    }
-    return cost_mapping.get(value, 1000)  # Default to infinity for unrecognized values
+    return COST_MAPPING.get(value, 5)  # Default to infinity for unrecognized values
 
 '''
 Heuristic function (Manhattan distance for grid)
@@ -158,7 +160,7 @@ def a_star(map, e_pos, p_pos):
     path.append(e_pos)
     path.reverse()  # Reverse the path to start -> goal
 
-    velocity = Vector2((0,0))
+    velocity = Vector2(0)
 
     # Because system uses last two path nodes for A* to calculate next immediate 
     # vector for enemy to take towards player, with paht[0] being the current position
