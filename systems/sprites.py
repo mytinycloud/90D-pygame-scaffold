@@ -75,14 +75,16 @@ def draw_sprite_system(group: EntityGroup):
     offset, scale = camera.camera.get_screenspace_transform(camera.motion.position)
 
     asset_pipeline = AssetPipeline.get_instance()
-
     tile_size = Vector2(math.ceil(scale))
+    scaled_sprites = {key: pygame.transform.scale(sprite, tile_size) for key, sprite in TILE_SPRITES.items()}
+    unknown_sprite = pygame.transform.scale(asset_pipeline.get_image('tiles/unknown.png'), tile_size)
+
+    
     tile_center = Vector2(scale / 2)
     for y in range(tilemap.bounds.left, tilemap.bounds.right):
         for x in range(tilemap.bounds.top, tilemap.bounds.bottom):
             tile = tilemap.get_tile((x,y))
-            tile_surface = TILE_SPRITES.get(tile) or asset_pipeline.get_image('tiles/unknown.png')
-            scaled_sprite = pygame.transform.scale(tile_surface, tile_size)
+            scaled_sprite = scaled_sprites.get(tile) or unknown_sprite
             screen_pos = Vector2(x,y) * scale + offset
             surface.blit(scaled_sprite, screen_pos - tile_center)
 
