@@ -45,25 +45,9 @@ class EffectComponent():
     def add_consumes(self, name: str):
         self.consumes.append(name)
 
-'''
-Return the normal vectors for a given direction
-'''
-def vector_normals(pos: Vector2, diretion: Vector2) -> list[Vector2]:
-    return (
-        pos + utils.rotate_vector_cw(diretion),
-        pos + utils.rotate_vector_ccw(diretion)
-    )
+    def requires_direction(self):
+        return self.shape != SHAPE_NONE
 
-'''
-Return the 4 cardinal directions
-'''
-def vector_cardinals(pos: Vector2) -> list[Vector2]:
-    return (
-        pos + Vector2(1,0),
-        pos + Vector2(0,1),
-        pos + Vector2(-1,0),
-        pos + Vector2(0,-1)
-    )
 
 '''
 Enumerates through the valid targets for a given effect
@@ -139,13 +123,13 @@ def effect_update_system(group: EntityGroup):
                 ]
 
                 # Waves start waves in valid adjacent tiles
-                for coord in valid_tiles(map, effect.cast_from, vector_normals(pos, dir)):
+                for coord in valid_tiles(map, effect.cast_from, utils.vector_normals(pos, dir)):
                     propagation_request.append( (coord, 0, SHAPE_WAVE) )
                 unchecked_coords = [-dir]
 
             elif effect.shape == SHAPE_FILL:
                 # Goes out in all directions
-                valid_coords = valid_tiles(map, effect.cast_from, shuffled(vector_cardinals(pos)))
+                valid_coords = valid_tiles(map, effect.cast_from, shuffled(utils.vector_cardinals(pos)))
                 # Let the propagation step figure out if we use more energy than we have...
                 energy_transfer =  math.ceil(effect.energy) / energy_transfer
                 for coord in valid_coords:
@@ -156,10 +140,10 @@ def effect_update_system(group: EntityGroup):
                 propagation_request = [
                     (pos + dir, effect.energy - 1, SHAPE_LANCE),
                 ]
-                unchecked_coords = list(vector_normals(pos, dir)) + [-dir]
+                unchecked_coords = list(utils.vector_normals(pos, dir)) + [-dir]
 
             else: # SHAPE_NONE
-                unchecked_coords = vector_cardinals(pos)
+                unchecked_coords = utils.vector_cardinals(pos)
 
             # Do the random propagation in the unchecked directions
             for coord in shuffled( valid_tiles(map, effect.chains_to, unchecked_coords) ):

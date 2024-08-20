@@ -6,7 +6,8 @@ from systems.motion import Direction, MotionComponent
 from systems.tilemap import TILE_EMBER, TILE_MUD, TILE_PLANT, TILE_WATER, Tile, TilemapComponent
 from systems.turn import TurnComponent
 from systems.ui import UIComponent
-from systems.utils import clamp_vector
+
+from . import utils
 
 @enumerate_component("spell")
 class SpellComponent:
@@ -99,7 +100,7 @@ def spell_cast_system(group: EntityGroup):
             spell: SpellComponent = spell_entity.spell
             
             if spell.select_action == selected_spell.spell_action and selected_spell.spell_casting_start in tile_area.tile_positions:
-                effect_direction = clamp_vector(controls.mouse_grid_position - selected_spell.spell_casting_start, Vector2(-1,-1), Vector2(1,1))
+                effect_direction = utils.closest_cardinal(controls.mouse_grid_position - selected_spell.spell_casting_start)
                 effect_entity = create_effect(spell.effect, selected_spell.spell_casting_start, effect_direction)
                 group.add(effect_entity)
                 turn.waiting = False
