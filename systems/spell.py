@@ -100,10 +100,9 @@ def spell_cast_system(group: EntityGroup):
         camera: CameraComponent = camera_entity.camera
         offset, scale = camera.get_screenspace_transform(camera_entity.motion.position)
         effect_direction = utils.closest_cardinal(controls.mouse_grid_position - selected_spell.spell_casting_start)
-        size = selected_spell.spell_casting_start.distance_to(controls.mouse_grid_position) * scale
-        surface = Surface(Vector2(size*2), pygame.SRCALPHA)
-        pygame.draw.line(surface, (0,0,0), Vector2(size), (effect_direction * size), 5)
-        camera.surface.blit(surface, (selected_spell.spell_casting_start * scale + offset) - Vector2(size))
+        surface = Surface(Vector2(scale*2), pygame.SRCALPHA)
+        pygame.draw.line(surface, (0,0,0), Vector2(scale), Vector2(scale) + (effect_direction * scale), 5)
+        camera.surface.blit(surface, (selected_spell.spell_casting_start * scale + offset) - Vector2(scale))
         
 
     if "mouse_0_start" in controls.actions:
