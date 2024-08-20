@@ -87,11 +87,11 @@ def create_enemy(position = tuple[int, int]):
 
 
 COST_MAPPING = {
-    0: 1,   #  Earth 
-    1: 3, #  Water
-    2: 2,  #  Mud
-    3: 2,   #  Plant
-    4: 3  #  Ember
+    tilemap.TILE_EARTH: 1,
+    tilemap.TILE_WATER: 3,
+    tilemap.TILE_MUD:   2,
+    tilemap.TILE_PLANT: 2,
+    tilemap.TILE_EMBER: 3.
 }
 
 '''
